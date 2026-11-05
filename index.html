@@ -1,10 +1,295 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>BrainrotX Test</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>BrainrotX</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@500;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c0a0b;--card:#16110e;--line:#2a2019;--tx:#f5ede4;--mut:#9b8c7f;--g1:#ffd23f;--g2:#ff7a1a;--on:#1d1300;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--tx);font:500 15px/1.4 Manrope,system-ui,sans-serif}
+body{min-height:100vh;padding-bottom:90px}
+canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+header,main,nav{position:relative;z-index:1;max-width:560px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px}
+.logo{font:800 19px Unbounded,sans-serif;letter-spacing:-.5px}.logo b{background:linear-gradient(135deg,var(--g1),var(--g2));-webkit-background-clip:text;color:transparent}
+.bal{display:flex;gap:7px;align-items:center;background:var(--card);border:1px solid var(--line);padding:7px 13px;border-radius:99px;font-weight:800}
+.co{display:inline-block;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff0a8,var(--g1) 45%,#c98912);vertical-align:-3px;margin-right:5px;box-shadow:0 0 8px #ffc23355}
+.bal .co{margin:0}
+main{padding:4px 16px}
+h2{font:800 22px Unbounded,sans-serif;margin:8px 0 14px}.sub{font:600 14px Unbounded,sans-serif;margin:22px 0 10px;color:var(--mut)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.case{background:linear-gradient(170deg,color-mix(in srgb,var(--c) 22%,var(--card)),var(--card) 70%);border:1px solid color-mix(in srgb,var(--c) 40%,var(--line));border-radius:20px;padding:18px 12px;color:var(--tx);text-align:center;font:inherit;cursor:pointer;transition:transform .15s}
+.case:active{transform:scale(.97)}.ce{font-size:54px;filter:drop-shadow(0 6px 14px var(--c))}.case h3{font:600 13px Unbounded,sans-serif;margin:8px 0 4px}.case p{color:var(--g1);font-weight:800}
+.tile{flex:0 0 96px;height:116px;border-radius:14px;background:radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--c) 30%,#0000),var(--card) 75%);border:1px solid var(--line);border-bottom:3px solid var(--c);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;text-align:center;position:relative}
+.ii{height:1em;width:auto;display:block;image-rendering:auto}.tile span{display:flex;align-items:center;height:42px}.big .ii{height:96px;margin:0 auto}.mini{display:inline-flex}
+.tile span{font-size:38px}.tile small{font-size:10.5px;line-height:1.15;color:var(--mut)}.tile b{font-size:12px;color:var(--g1)}.tile em{position:absolute;top:4px;right:6px;font:700 10px Manrope;color:var(--mut)}
+.grid3 .tile,.inv .tile{flex:none;width:auto}
+button.tile{cursor:pointer;color:var(--tx);font:inherit}button.tile.sel{outline:2px solid var(--g1)}
+.roul{position:relative;overflow:hidden;border-radius:18px;background:#0007;border:1px solid var(--line);padding:14px 0;margin:8px 0 14px}
+.strip{display:flex;gap:8px;position:relative;width:max-content;padding-left:8px}
+.mk{position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;background:linear-gradient(var(--g1),var(--g2));z-index:2;box-shadow:0 0 14px var(--g2)}
+.btn{width:100%;padding:15px;border:0;border-radius:16px;background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--on);font:800 15px Unbounded,sans-serif;cursor:pointer}
+.btn:disabled{opacity:.45}.btn.ghost{background:var(--card);color:var(--tx);border:1px solid var(--line)}
+.back{background:none;border:0;color:var(--mut);font:inherit;font-weight:800;padding:6px 0;cursor:pointer}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#100c0be8;backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
+nav button{flex:1;background:none;border:0;color:var(--mut);font:800 11px Manrope;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+nav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}nav .on{color:var(--g1)}
+.ring{width:210px;height:210px;border-radius:50%;margin:6px auto 16px;position:relative;display:grid;place-items:center;background:conic-gradient(#3ddc84 var(--p,0deg),#2a2019 0)}
+.ring::before{content:"";position:absolute;inset:14px;border-radius:50%;background:var(--bg)}
+.ring>div{position:relative;font:800 34px Unbounded,sans-serif;text-align:center}.ring small{display:block;font:500 12px Manrope;color:var(--mut)}
+.nd{position:absolute;inset:0;transition:transform 3.4s cubic-bezier(.15,.7,.1,1)}.nd::after{content:"";position:absolute;left:50%;top:-4px;width:6px;height:26px;margin-left:-3px;background:var(--g1);border-radius:3px;box-shadow:0 0 10px var(--g2)}
+.row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}.row .tile{flex:0 0 96px}
+.cbox{height:190px;border-radius:20px;border:1px solid var(--line);background:radial-gradient(circle at 50% 120%,#ff7a1a33,var(--card) 70%);display:grid;place-content:center;text-align:center;margin-bottom:12px}
+.mult{font:800 52px Unbounded,sans-serif}.cst{color:var(--mut);margin-top:4px}
+.bet{display:flex;gap:8px;margin-bottom:10px}.bet input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:14px;padding:12px;font:800 16px Manrope}
+.bet button{background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:14px;padding:0 14px;font-weight:800;cursor:pointer}
+.hist{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}.hist i{font-style:normal;font-weight:800;font-size:12px;padding:4px 9px;border-radius:99px;background:var(--card);border:1px solid var(--line)}.hist .w{color:#3ddc84}.hist .l{color:#ff4d5e}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stats div{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;text-align:center;color:var(--mut);font-size:12px}.stats b{display:block;font:800 17px Unbounded,sans-serif;color:var(--tx);margin-bottom:2px}
+.empty{color:var(--mut);padding:24px;text-align:center;border:1px dashed var(--line);border-radius:16px}
+#md{position:fixed;inset:0;z-index:9;background:#000b;display:none;place-items:center;padding:20px}#md.on{display:grid}
+.mdb{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:24px;width:100%;max-width:340px;text-align:center;animation:pop .28s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.8);opacity:0}}.mdb .big{font-size:76px;filter:drop-shadow(0 8px 20px var(--c))}.mdb h3{font:800 18px Unbounded,sans-serif;margin:6px 0}.mdb p{color:var(--mut);margin-bottom:16px}.mdb .btn+.btn{margin-top:8px}
+#ts{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:10;background:var(--g1);color:var(--on);font-weight:800;padding:9px 16px;border-radius:99px;opacity:0;transition:opacity .2s;pointer-events:none}#ts.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.nd,.mdb{transition:none;animation:none}}
+.gw{position:relative;width:236px;height:236px;margin:4px auto 14px}.gauge{width:100%;height:100%;overflow:visible}
+.gt{fill:none;stroke:#3a2d23;stroke-width:5;stroke-dasharray:1.4 4.69}.gb{fill:#0006;stroke:#ffffff12;stroke-width:10;transition:stroke .3s}
+.gwn{fill:none;stroke:url(#gG);stroke-width:10;transform:rotate(-90deg);transform-origin:50% 50%;transform-box:view-box;transition:stroke-dasharray .35s;filter:drop-shadow(0 0 6px #ff7a1a88)}
+.gp{transform-origin:50% 50%;transform-box:view-box;fill:#fff;filter:drop-shadow(0 0 6px var(--g1))}
+.gc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:none}.gc b{font:800 32px Unbounded,sans-serif}.gc span{font-size:12px;color:var(--mut)}
+.slots{display:flex;align-items:center;gap:10px}.slot{flex:1;background:#0005;border:1px solid var(--line);border-radius:16px;padding:12px;min-height:104px}.slot[style]{border-color:color-mix(in srgb,var(--c) 55%,var(--line))}
+.slot label{font-size:12px;color:var(--mut);font-weight:800}.sa{display:flex;gap:2px;min-height:40px;align-items:center;margin:6px 0 4px}.sa em{font-style:normal;color:#6e6055;font-size:12.5px;font-weight:700}.mini{font-size:30px;filter:drop-shadow(0 3px 8px var(--c))}.sv{font-size:13px;font-weight:800;min-height:18px}
+.sar{width:30px;height:30px;flex:none;display:grid;place-items:center;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);background:linear-gradient(135deg,var(--g1),var(--g2))}.sar svg{width:15px;height:15px;fill:none;stroke:var(--on);stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.pcts{display:flex;gap:6px;margin-top:12px}.pcts button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--tx);font:800 14px Manrope;cursor:pointer}.pcts .on{background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--on);border-color:transparent}
+.rng{display:flex;align-items:center;gap:12px;margin:12px 2px 14px}.rng b{min-width:46px;text-align:right;font:700 14px Unbounded,sans-serif}.rng input{flex:1;accent-color:#ffb02e;height:28px}.rng input:disabled{opacity:.35}
+.seg{display:flex;margin:18px 0 10px;border-bottom:1px solid var(--line)}.seg button{flex:1;background:none;border:0;color:var(--mut);font:800 13px Manrope;padding:12px;position:relative;cursor:pointer}.seg .on{color:var(--tx)}.seg .on::after{content:"";position:absolute;left:14%;right:14%;bottom:-1px;height:2px;background:linear-gradient(90deg,var(--g1),var(--g2))}
+.tile .ck{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:5px;background:linear-gradient(135deg,var(--g1),var(--g2));display:none;place-items:center;color:var(--on);font:800 12px Manrope;font-style:normal}.tile.sel .ck{display:grid}.tile .pc{position:absolute;top:5px;left:6px;font:700 10px Manrope;font-style:normal;color:var(--mut);background:#0008;padding:2px 5px;border-radius:5px}
+.ci{width:112px;max-width:100%;height:auto;display:block;margin:0 auto}.ce svg{filter:drop-shadow(0 8px 14px color-mix(in srgb,var(--c) 55%,#0000))}
+.fast{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px auto 0;color:var(--mut);font-weight:800;font-size:13px;cursor:pointer;user-select:none}.fast input{accent-color:var(--g2);width:18px;height:18px}.roul.sp{cursor:pointer}
+</style>
 </head>
 <body>
-    <h1>BrainrotX работает!</h1>
+<canvas id="bg"></canvas>
+<header><div class="logo">Brainrot<b>X</b></div><div class="bal"><i class="co"></i><span id="bal"></span></div></header>
+<main id="view"></main>
+<nav id="nav">
+<button data-t="cases"><svg viewBox="0 0 24 24"><path d="M3.5 9.5h17v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M3.5 9.5 6 4h12l2.5 5.5M10 13.5h4"/></svg>Кейсы</button>
+<button data-t="up"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v-9M8.3 11.2 12 7.5l3.7 3.7"/></svg>Апгрейд</button>
+<button data-t="crash"><svg viewBox="0 0 24 24"><path d="M3 18 9 11l4 4 8-10"/><path d="M15 5h6v6"/></svg>Краш</button>
+<button data-t="me"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.4-4 4.400-6 8-6s6.600 2 8 6"/></svg>Профиль</button>
+</nav>
+<div id="md"></div><div id="ts"></div>
+<script>
+const $=s=>document.querySelector(s),fmt=n=>Math.round(n).toLocaleString('ru-RU'),co=()=>'<i class="co"></i>';
+const R={c:['#8b94a3','Обычный'],r:['#3b9bff','Редкий'],e:['#b061ff','Эпик'],l:['#ffc233','Легенда'],m:['#ff4d5e','Мифик']};
+const I=[['🐊','Крокодилло','c',20],['🦈','Акулёнок','c',35],['🍌','Банано-бомбо','c',50],['🐘','Слонито','r',120],['🦩','Фламингоро','r',180],['🐙','Осьминоро','e',400],['🦖','Динозавро','e',650],['🐉','Дракончик','l',1500],['🦄','Единорогини','l',2500],['👑','Король Брейнрот','m',8000],['🌌','Космо-Брейнрот','m',20000],['data:image/webp;base64,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rWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWtrWlet uscall(t=>{
+let S=localStorage.getItem('brx_s')?JSON.parse(localStorage.getItem('brx_s')):{bal:1000,inv:[],hist:[],upH:[],crH:[]}, sv=()=>localStorage.setItem('brx_s',JSON.stringify(S));
+const TS=I.map(x=>({i:x[0],n:x[1],t:x[2],p:x[3],u:x[4]||null}));
+const G={
+cases:()=>{
+let h=`<h2>Кейсы</h2><div class="grid">`;
+[
+['Нубский','c',50,'🎁'],['Редкий','r',150,'💼'],['Эпик','e',500,'📦'],['Легендарный','l',2000,'👑'],['Мифический','m',10000,'🌌']
+].forEach((c,idx)=>{
+h+=`<button class="case" style="--c:${R[c[1]][0]}" data-i="${idx}"><div class="ce">${c[3]}</div><h3>${c[0]}</h3><p>${fmt(c[2])} <i class="co"></i></p></button>`;
+});
+h+=`</div><div class="sub">Мои предметы</div>`;
+if(!S.inv.length) h+=`<div class="empty">Инвентарь пуст</div>`;
+else{
+h+=`<div class="grid3">`;
+S.inv.forEach((it,idx)=>{
+let t=TS.find(x=>x.n===it);
+h+=`<div class="tile" style="--c:${R[t.t][0]}"><small>${R[t.t][1]}</small><span>${t.u?`<img class="ii" src="${t.u}" alt="">`:t.i}</span><small>${t.n}</small><b>${fmt(t.p)} <i class="co"></i></b><button class="btn ghost" style="margin-top:4px;padding:6px;font-size:11px" onclick="sellItem(${idx})">Продать</button></div>`;
+});
+h+=`</div>`;
+}
+$('#view').innerHTML=h;
+document.querySelectorAll('.case').forEach(b=>b.onclick=()=>openCase(b.dataset.i));
+},
+up:()=>{
+let selItem=S.upS!==undefined?S.inv[S.upS]:null;
+let target=S.upT||TS[1];
+let ch=S.upCh||50;
+let mult=(target.p/ (selItem?TS.find(x=>x.n===selItem).p:10)).toFixed(2);
+let h=`<h2>Апгрейд</h2><div class="slots">
+<div class="slot" style="--c:${selItem?R[TS.find(x=>x.n===selItem).t][0]:'var(--line)'}"><label>Предмет</label><div class="sa">${selItem?`<span class="mini">${(t=TS.find(x=>x.n===selItem)).u?`<img class="ii" src="${t.u}" alt="">`:t.i}</span><span class="sv">${t.n}</span>`:`<em>Выбери</em>`}</div></div>
+<div class="sar"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+<div class="slot" style="--c:${R[target.t][0]}"><label>Цель (x${mult})</label><div class="sa"><span class="mini">${target.u?`<img class="ii" src="${target.u}" alt="">`:target.i}</span><span class="sv">${target.n}</span></div></div>
+</div>
+<div class="sub">Шанс успеха: <span id="chv" style="color:var(--g1)">${ch}%</span></div>
+<div class="rng"><input type="range" id="chRng" min="10" max="90" value="${ch}"><b id="chB">${ch}%</b></div>
+<div class="sub">Выбрать предмет из инвентаря</div>`;
+if(!S.inv.length) h+=`<div class="empty">Инвентарь пуст для апгрейда</div>`;
+else{
+h+=`<div class="row">`;
+S.inv.forEach((it,idx)=>{
+let t=TS.find(x=>x.n===it);
+h+=`<button class="tile ${S.upS===idx?'sel':''}" style="--c:${R[t.t][0]}" onclick="selUp(${idx})"><small>${R[t.t][1]}</small><span>${t.u?`<img class="ii" src="${t.u}" alt="">`:t.i}</span><small>${t.n}</small></button>`;
+});
+h+=`</div>`;
+}
+h+=`<div class="sub">Выбрать цель</div><div class="row">`;
+TS.forEach((t,idx)=>{
+h+=`<button class="tile ${(S.upT&&S.upT.n===t.n)||(!S.upT&&idx===1)?'sel':''}" style="--c:${R[t.t][0]}" onclick="selTarget(${idx})"><small>${R[t.t][1]}</small><span>${t.u?`<img class="ii" src="${t.u}" alt="">`:t.i}</span><small>${t.n}</small><b>${fmt(t.p)} <i class="co"></i></b></button>`;
+});
+h+=`</div><button class="btn" style="margin-top:16px" onclick="doUpgrade()" ${!selItem?'disabled':''}>Сделать апгрейд</button>`;
+$('#view').innerHTML=h;
+let rng=$('#chRng');
+if(rng) rng.oninput=(e)=>{ S.upCh=parseInt(e.target.value); updateUpCalc(); }
+},
+crash:()=>{
+let h=`<h2>Краш</h2><div class="cbox"><div class="mult" id="cmult">1.00x</div><div class="cst" id="cst">Сделай ставку</div></div>
+<div class="bet"><input type="number" id="cbet" value="100" min="10"><button onclick="setBet(0.5)">1/2</button><button onclick="setBet(2)">2x</button><button onclick="setMax()">МАКС</button></div>
+<button class="btn" id="cbtn" onclick="startCrash()">Играть</button>
+<div class="hist" id="chist"></div>`;
+$('#view').innerHTML=h;
+renderCrashHist();
+},
+me:()=>{
+let totalVal=S.inv.reduce((acc,it)=>acc+TS.find(x=>x.n===it).p,0);
+let h=`<h2>Профиль</h2><div class="stats">
+<div><b>${fmt(S.bal)} <i class="co" style="display:inline-block;width:12px;height:12px;vertical-align:-1px"></i></b>Баланс</div>
+<div><b>${fmt(totalVal)} <i class="co" style="display:inline-block;width:12px;height:12px;vertical-align:-1px"></i></b>Инвентарь</div>
+<div><b>${S.inv.length}</b>Предметов</div>
+</div>
+<div class="sub">Управление данными</div>
+<button class="btn ghost" onclick="resetData()" style="margin-top:6px">Сбросить прогресс</button>`;
+$('#view').innerHTML=h;
+}
+};
+
+function nav(t){
+document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+S.tab=t; sv(); G[t]();
+}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>nav(b.dataset.t));
+
+function showTs(m){let t=$('#ts'); t.innerText=m; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),1500);}
+function updBal(){$('#bal').innerText=fmt(S.bal);}
+
+// Cases logic
+const CData=[
+['Нубский','c',50,[0,0,1,1,2,2,3]],
+['Редкий','r',150,[2,3,3,4,4,5]],
+['Эпик','e',500,[4,5,5,6,6,7]],
+['Легендарный','l',2000,[6,7,7,8,8,9]],
+['Мифический','m',10000,[7,8,9,9,10,10]]
+];
+function openCase(idx){
+let c=CData[idx];
+if(S.bal<c[2]){showTs("Не хватает коинов!");return;}
+S.bal-=c[2]; updBal();
+let pool=c[3];
+let winIdx=pool[Math.floor(Math.random()*pool.length)];
+let winItem=TS[winIdx];
+S.inv.push(winItem.n); sv();
+
+let h=`<div class="mdb" style="--c:${R[winItem.t][0]}"><div class="big">${winItem.u?`<img class="ci" src="${winItem.u}" alt="">`:winItem.i}</div><h3>${winItem.n}</h3><p>${R[winItem.t][1]} • ${fmt(winItem.p)} <i class="co"></i></p><button class="btn" onclick="closeModal();G.cases()">Забрать</button></div>`;
+$('#md').innerHTML=h; $('#md').classList.add('on');
+}
+function closeModal(){$('#md').classList.remove('on');}
+function sellItem(idx){
+let it=S.inv[idx]; let t=TS.find(x=>x.n===it);
+S.bal+=Math.round(t.p*0.8);
+S.inv.splice(idx,1); sv(); updBal(); G.cases();
+showTs("Предмет продан!");
+}
+
+// Upgrade logic
+function selUp(idx){S.upS=idx; sv(); G.up();}
+function selTarget(idx){S.upT=TS[idx]; sv(); G.up();}
+function updateUpCalc(){
+let ch=S.upCh;
+$('#chB').innerText=ch+'%';
+$('#chv').innerText=ch+'%';
+let selItem=S.upS!==undefined?S.inv[S.upS]:null;
+if(!selItem) return;
+let curP=TS.find(x=>x.n===selItem).p;
+let target=S.upT||TS[1];
+let neededP=Math.round((curP*100)/ch);
+// find closest target
+let best=TS[0], minD=9999999;
+TS.forEach(t=>{let d=Math.abs(t.p-neededP); if(d<minD){minD=d; best=t;}});
+S.upT=best;
+}
+function doUpgrade(){
+if(S.upS===undefined||!S.inv[S.upS]) return;
+let selItemName=S.inv[S.upS];
+let curT=TS.find(x=>x.n===selItemName);
+let target=S.upT||TS[1];
+let ch=S.upCh||50;
+S.inv.splice(S.upS,1);
+S.upS=undefined;
+let success=Math.random()*100<ch;
+if(success){
+S.inv.push(target.n);
+}
+sv(); G.up();
+let h=`<div class="mdb" style="--c:${success?'#3ddc84':'#ff4d5e'}"><div class="big">${success?'🎉':'😢'}</div><h3>${success?'Успех!':'Краш!'}</h3><p>${success?`Ты выиграл ${target.n}`:`Предмет сгорел`}</p><button class="btn" onclick="closeModal()">ОК</button></div>`;
+$('#md').innerHTML=h; $('#md').classList.add('on');
+}
+
+// Crash logic
+let crashInterval=null;
+function setBet(v){let b=$('#cbet'); b.value=Math.max(10,Math.round(b.value*v));}
+function setMax(){let b=$('#cbet'); b.value=S.bal;}
+function startCrash(){
+let b=parseInt($('#cbet').value);
+if(isNaN(b)||b<10||b>S.bal){showTs("Неверная ставка!");return;}
+S.bal-=b; updBal();
+$('#cbet').disabled=true;
+let btn=$('#cbtn'); btn.innerText="Стоп (Забрать)"; btn.onclick=cashOutCrash;
+let mult=1.00;
+let crashAt=1.01+(Math.random()<0.1?0:Math.random()*Math.random()*8);
+let crashed=false;
+crashInterval=setInterval(()=>{
+mult+=0.03+(mult*0.02);
+if(mult>=crashAt){
+mult=crashAt;
+crashed=true;
+endCrash(false,b,mult);
+}else{
+$('#cmult').innerText=mult.toFixed(2)+'x';
+}
+},50);
+window.currentCrash={bet:b,mult:()=>mult,crashed:()=>crashed};
+}
+function cashOutCrash(){
+if(!window.currentCrash||window.currentCrash.crashed()) return;
+clearInterval(crashInterval);
+let win=Math.round(window.currentCrash.bet*window.currentCrash.mult());
+S.bal+=win; sv(); updBal();
+endCrash(true,window.currentCrash.bet,window.currentCrash.mult(),win);
+}
+function endCrash(win,bet,mult,winAmt=0){
+clearInterval(crashInterval);
+$('#cmult').innerText=mult.toFixed(2)+'x';
+$('#cst').innerText=win?`Выигрыш: ${fmt(winAmt)} <i class="co"></i>`:`Краш на ${mult.toFixed(2)}x`;
+let btn=$('#cbtn'); btn.innerText="Играть"; btn.onclick=startCrash;
+$('#cbet').disabled=false;
+S.crH=S.crH||[];
+S.crH.unshift({w:win,m:mult}); if(S.crH.length>10) S.crH.pop(); sv();
+renderCrashHist();
+}
+function renderCrashHist(){
+let h='';
+(S.crH||[]).forEach(item=>{
+h+=`<i class="${item.w?'w':'l'}">${item.m.toFixed(2)}x</i>`;
+});
+$('#chist').innerHTML=h;
+}
+
+function resetData(){
+if(confirm("Сбросить весь прогресс?")){
+localStorage.removeItem('brx_s');
+location.reload();
+}
+}
+
+updBal();
+nav(S.tab||'cases');
+</script>
 </body>
 </html>
