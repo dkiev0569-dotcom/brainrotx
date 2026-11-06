@@ -1,12 +1,12 @@
-// BrainrotX — сервер промокодов. Без зависимостей, нужен Node.js 18+.
+// BrainrotX — сервер промокодов и Telegram-бот. Без зависимостей, нужен Node.js 18+.
 // Запуск: BOT_TOKEN=123:ABC ORIGIN=https://ТВОЙ_НИК.github.io node server.js
-const http = require('http'), crypto = require('crypto'), fs = require('fs');
+const http = require('http'), crypto = require('crypto'), fs = require('fs'), path = require('path');
 
-const BOT_TOKEN = process.env.BOT_TOKEN;                       // токен бота от @BotFather
+const BOT_TOKEN = process.env.BOT_TOKEN;                     // токен бота от @BotFather
 const PARTNERS = (process.env.PARTNERS || '8158983520').split(',').map(Number); // ID партнёров
-const ORIGIN = process.env.ORIGIN || '*';                      // адрес сайта, напр. https://ник.github.io
+const ORIGIN = process.env.ORIGIN || '*';                     // адрес сайта, напр. https://ник.github.io
 const PORT = process.env.PORT || 3000;
-const FILE = process.env.DB_FILE || './promos.json';           // файл базы промокодов
+const FILE = process.env.DB_FILE || './promos.json';            // файл базы промокодов
 
 if (!BOT_TOKEN) { console.error('Задай BOT_TOKEN'); process.exit(1); }
 
@@ -30,14 +30,14 @@ function verify(initData) {
 }
 
 // ===== Заявки на пополнение =====
-const ADMIN = Number(process.env.ADMIN || 8158983520);          // только этот ID видит заявки
+const ADMIN = Number(process.env.ADMIN || 8158983520);         // только этот ID видит заявки
 const TFILE = process.env.TOPUP_FILE || './topups.json';
 let TP = [];
 try { TP = JSON.parse(fs.readFileSync(TFILE, 'utf8')); } catch (e) {}
 const saveTP = () => fs.writeFileSync(TFILE, JSON.stringify(TP));
 const clip = (v, n) => String(v || '').slice(0, n);
 
-// уведомление админу в Telegram (нужно один раз нажать /start у бота)
+// уведомление админу в Telegram
 function notify(r) {
   const text = '📥 Новая заявка на пополнение\n' + r.nick + (r.username ? ' (@' + r.username + ')' : '') +
     '\n' + r.items.map(i => i.name + ' ×' + i.n).join(', ') + '\nИтого: ' + r.total +
@@ -48,6 +48,129 @@ function notify(r) {
   }).catch(() => {});
 }
 
+// ===== Встроенный Telegram-бот (Long Polling через нативный fetch) =====
+async function telegramBotLongPolling() {
+  let offset = 0;
+  console.log('🤖 Telegram-бот запущен и слушает команды...');
+  
+  while (true) {
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${offset}&timeout=30`);
+      const data = await res.json();
+      
+      if (data.ok && data.result) {
+        for (const update of data.result) {
+          offset = update.update_id + 1;
+          
+          // Обрабатываем текстовые сообщения (например, /start)
+          if (update.message && update.message.text) {
+            const chatId = update.message.chat.id;
+            const text = update.message.text.trim();
+            
+            if (text === '/start') {
+              await sendWelcomeMessage(chatId);
+            }
+          }
+          
+          // Обрабатываем нажатия на инлайн-кнопки (callback_query)
+          if (update.callback_query) {
+            const query = update.callback_query;
+            const chatId = query.message.chat.id;
+            
+            if (query.data === 'enter_promo') {
+              // Отвечаем на callback, чтобы убрать часики с кнопки
+              await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ callback_query_id: query.id })
+              });
+              // Отправляем подсказку пользователю
+              await sendTextMessage(chatId, '🎁 Введи промокод прямо на сайте в разделе активации!');
+            }
+          }
+        }
+      }
+    } catch (err) {
+      // Ошибку сети игнорируем, чтобы цикл не падал при кратковременном пропадании связи
+      await new Promise(r => setTimeout(r, 3000));
+    }
+  }
+}
+
+// Функция отправки приветственного сообщения с картинкой и кнопками
+async function sendWelcomeMessage(chatId) {
+  const captionText = 
+    "😎 Добро пожаловать в Brainrot Farm!\n\n" +
+    "Кейсы, апгрейд и Ракета по игре «Steal a Brainrot»:\n" +
+    "» Открывай кейсы и собирай брейнротов\n" +
+    "» Прокачивай их в Апгрейдере\n" +
+    "» Лови множители в Ракете\n\n" +
+    "🍀 Испытай свою удачу с нами, фарми петов и моментально выводи!";
+
+  // Кнопки под сообщением (ORIGIN используется как ссылка на Mini App)
+  const replyMarkup = {
+    inline_keyboard: [
+      [
+        { text: '🚀 Играть', web_app: { url: ORIGIN } }
+      ],
+      [
+        { text: '📰 Новости', url: 'https://t.me/your_news_channel' },
+        { text: '💬 Поддержка', url: 'https://t.me/your_support_user' }
+      ],
+      [
+        { text: '🎁 Ввести бонус-код', callback_data: 'enter_promo' }
+      ]
+    ]
+  };
+
+  const bannerPath = path.join(__dirname, 'banner.png');
+
+  // Если файл баннера существует на сервере, шлем sendPhoto через FormData
+  if (fs.existsSync(bannerPath)) {
+    try {
+      const boundary = '----WebKitFormBoundary' + crypto.random十六Bytes ? crypto.randomBytes(8).toString('hex') : 'FormBoundary12345';
+      const fileBuffer = fs.readFileSync(bannerPath);
+      
+      // Формируем multipart/form-data вручную для отправки файла через fetch в Telegram API
+      let header = `--${boundary}\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n`;
+      header += `--${boundary}\r\nContent-Disposition: form-data; name="caption"\r\n\r\n${captionText}\r\n`;
+      header += `--${boundary}\r\nContent-Disposition: form-data; name="parse_mode"\r\n\r\nMarkdown\r\n`;
+      header += `--${boundary}\r\nContent-Disposition: form-data; name="reply_markup"\r\n\r\n${JSON.stringify(replyMarkup)}\r\n`;
+      header += `--${boundary}\r\nContent-Disposition: form-data; name="photo"; filename="banner.png"\r\nContent-Type: image/png\r\n\r\n`;
+      
+      const footer = `\r\n--${boundary}--\r\n`;
+      const bodyPayload = Buffer.concat([Buffer.from(header, 'utf8'), fileBuffer, Buffer.from(footer, 'utf8')]);
+
+      const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+        method: 'POST',
+        headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+        body: bodyPayload
+      });
+      const resJson = await res.json();
+      if (resJson.ok) return; // Успешно отправили с фото
+    } catch (e) {
+      // Если что-то пошло не так при отправке фото, упадем в блок ниже и отправим текст
+    }
+  }
+
+  // Резервный вариант: если картинки нет или произошла ошибка, шлем просто текст с кнопками
+  await sendTextMessage(chatId, captionText, replyMarkup);
+}
+
+async function sendTextMessage(chatId, text, replyMarkup = null) {
+  const payload = { chat_id: chatId, text, parse_mode: 'Markdown' };
+  if (replyMarkup) payload.reply_markup = replyMarkup;
+  
+  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(() => {});
+}
+
+// Запускаем Telegram-бота в фоне
+telegramBotLongPolling();
+
+
+// ===== API Маршруты сервера =====
 const CODE_RE = /^[A-Z0-9А-ЯЁ_-]{3,20}$/;
 
 const routes = {
@@ -105,6 +228,7 @@ routes['/topup/resolve'] = (uid, b) => {
   return { ok: 1 };
 };
 
+// HTTP Сервер для Mini App
 http.createServer((req, res) => {
   const h = { 'Access-Control-Allow-Origin': ORIGIN, 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Content-Type': 'application/json' };
   const send = (c, o) => { res.writeHead(c, h); res.end(JSON.stringify(o)); };
@@ -120,4 +244,4 @@ http.createServer((req, res) => {
     if (!user) return send(401, { err: 'Открой сайт через Telegram' });
     send(200, route(user.id, b, user));
   });
-}).listen(PORT, () => console.log('Сервер на порту ' + PORT));
+}).listen(PORT, () => console.log('Сервер запущен на порту ' + PORT));
