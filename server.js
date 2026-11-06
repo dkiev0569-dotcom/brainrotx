@@ -113,8 +113,8 @@ async function sendWelcomeMessage(chatId) {
         { text: '🚀 Играть', web_app: { url: ORIGIN } }
       ],
       [
-        { text: '📰 Новости', url: 'https://t.me/your_news_channel' },
-        { text: '💬 Поддержка', url: 'https://t.me/your_support_user' }
+        { text: '📰 Новости', url: 'https://t.me/BRAINROTX1' },
+        { text: '💬 Поддержка', url: 'https://t.me/BRAINROTX1' }
       ],
       [
         { text: '🎁 Ввести бонус-код', callback_data: 'enter_promo' }
