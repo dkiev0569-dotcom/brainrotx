@@ -138,7 +138,7 @@ function draw(){hdr();document.querySelectorAll('nav button').forEach(b=>b.class
 
 /* ===== ПАРТНЁРЫ И ПРОМОКОДЫ ===== */
 const PARTNERS=[8158983520]; // <-- сюда вписывай Telegram ID партнёров через запятую, например [123456789,987654321]
-const API=''; // <-- адрес твоего сервера для общих промокодов (пусто = тест только на этом устройстве)
+const API='https://brainrotx.onrender.com'; // <-- адрес твоего сервера для общих промокодов (пусто = тест только на этом устройстве)
 const myId=()=>{const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;return u?u.id:0};
 const isP=()=>PARTNERS.includes(myId());
 const PL=()=>{try{return JSON.parse(localStorage.getItem('brx_promos'))||{}}catch(e){return{}}},PS=o=>{try{localStorage.setItem('brx_promos',JSON.stringify(o))}catch(e){}};
