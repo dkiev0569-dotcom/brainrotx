@@ -99,7 +99,7 @@ async function telegramBotLongPolling() {
 // Функция отправки приветственного сообщения с картинкой и кнопками
 async function sendWelcomeMessage(chatId) {
   const captionText = 
-    "😎 Добро пожаловать в Brainrot Farm!\n\n" +
+    "😎 Добро пожаловать в Brainrot X!\n\n" +
     "Кейсы, апгрейд и Ракета по игре «Steal a Brainrot»:\n" +
     "» Открывай кейсы и собирай брейнротов\n" +
     "» Прокачивай их в Апгрейдере\n" +
