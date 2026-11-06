@@ -73,11 +73,17 @@ nav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;st
 .qty{display:flex;gap:8px;margin:0 0 10px}.qty button{flex:1;padding:11px;border-radius:12px;background:var(--card);border:1px solid var(--line);color:var(--mut);font:800 14px Manrope,sans-serif;cursor:pointer}.qty button.on{color:var(--tx);border-color:var(--g2);box-shadow:inset 0 0 0 1px var(--g2)}.mg{margin:12px 0}
 .rl.sp .roul{cursor:pointer}.rl.m3 .roul,.rl.m5 .roul{padding:6px 0;margin:6px 0}.rl.m3 .tile{flex:0 0 78px;height:90px;padding-top:6px}.rl.m3 .tile span{height:34px;font-size:30px}.rl.m3 .tile small{font-size:9px}.rl.m5 .tile{flex:0 0 66px;height:68px;padding-top:6px}.rl.m5 .tile span{height:32px;font-size:28px}.rl.m5 .tile small{display:none}
 .who{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--card)}.who img,.who span{width:44px;height:44px;border-radius:50%;object-fit:cover;display:grid;place-items:center;font-size:22px;background:#0005;flex:none}.who b{display:block;font-size:15px}.who small{color:var(--mut);font-weight:800}
+body{background:radial-gradient(ellipse 80% 50% at 50% -8%,#ff7a1a2b,transparent 65%),radial-gradient(ellipse 70% 40% at 50% 108%,#3b6dff1f,transparent 70%),var(--bg) fixed}
+#plus{display:grid;place-items:center;width:22px;height:22px;margin:0 -6px 0 2px;border-radius:50%;background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--on);font:800 16px/1 Manrope;cursor:pointer}
+.tile .mn{position:absolute;top:5px;left:5px;width:18px;height:18px;border-radius:5px;background:#000a;color:var(--tx);display:grid;place-items:center;font:800 13px Manrope;font-style:normal}
+.tbar{position:sticky;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:3;margin-top:12px;padding:10px;border:1px solid var(--line);border-radius:18px;background:#100c0bf2;backdrop-filter:blur(10px);display:flex;gap:10px;align-items:center}.tbar .sm{flex:1;font-weight:800;font-size:13px;color:var(--mut)}.tbar .btn{width:auto;padding:13px 16px;font-size:13px}
+.rq{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px}.rq small{color:var(--mut);font-weight:700}.rh{display:flex;justify-content:space-between;gap:8px;align-items:center}.st{font:800 11px Manrope;padding:3px 8px;border-radius:99px;background:#0005}.st.new{color:var(--g1)}.st.approved{color:#3ddc84}.st.rejected{color:#ff4d5e}.ri{display:flex;flex-wrap:wrap;gap:5px}.ri span{font-size:12px;font-weight:800;background:#0005;border:1px solid var(--line);border-radius:8px;padding:3px 7px}.rt{font:800 15px Unbounded,sans-serif;color:var(--g1)}.rb{display:flex;gap:8px}.rb .btn{padding:11px;font-size:12px}
+.bet textarea{flex:1;min-width:0;min-height:90px;background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:14px;padding:12px;font:600 14px Manrope;resize:vertical}
 </style>
 </head>
 <body>
 <canvas id="bg"></canvas>
-<header><div class="logo">Brainrot<b>X</b></div><div class="bal"><i class="co"></i><span id="bal"></span></div></header>
+<header><div class="logo">Brainrot<b>X</b></div><div class="bal"><i class="co"></i><span id="bal"></span><b id="plus" role="button" aria-label="Пополнить">+</b></div></header>
 <main id="view"></main>
 <nav id="nav">
 <button data-t="cases"><svg viewBox="0 0 24 24"><path d="M3.5 9.5h17v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M3.5 9.5 6 4h12l2.5 5.5M10 13.5h4"/></svg>Кейсы</button>
@@ -127,7 +133,7 @@ function modal(h){try{TG&&TG.HapticFeedback&&TG.HapticFeedback.impactOccurred('m
 const close=()=>$('#md').classList.remove('on');
 function nav(t){if(busy||cr.on)return toast('Дождись конца раунда');clearInterval(tm);tab=t;cur=null;draw()}
 $('#nav').onclick=e=>{const b=e.target.closest('button');if(b)nav(b.dataset.t)};
-function draw(){hdr();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));({cases:cur===null?vCases:vCase,up:vUp,coin:vCoin,crash:vCrash,me:vMe,partner:vPartner})[tab]()}
+function draw(){hdr();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));({cases:cur===null?vCases:vCase,up:vUp,coin:vCoin,crash:vCrash,me:vMe,partner:vPartner,topup:vTopup,admin:vAdmin})[tab]()}
 
 
 /* ===== ПАРТНЁРЫ И ПРОМОКОДЫ ===== */
@@ -157,6 +163,96 @@ const b=$('#pgo');b.disabled=true;S.bal-=c;save();hdr();$('#pb').textContent=fmt
 const r=await promoCreate(code,n,a);b.disabled=false;
 if(r.ok){toast('Промокод '+code+' создан');$('#pc').value='';list()}else{S.bal+=c;save();hdr();$('#pb').textContent=fmt(S.bal);toast(r.err||'Ошибка')}};
 list()}
+
+/* ===== ПОПОЛНЕНИЕ И ЗАЯВКИ ===== */
+const ADMIN=8158983520; // только этот Telegram ID видит вкладку «Заявки»
+const isA=()=>myId()===ADMIN;
+const ST={new:'⏳ На проверке',approved:'✅ Принята',rejected:'❌ Отклонена'};
+const TL=()=>{try{return JSON.parse(localStorage.getItem('brx_tp'))||[]}catch(e){return[]}},TSV=a=>{try{localStorage.setItem('brx_tp',JSON.stringify(a))}catch(e){}};
+async function tApi(op,b){if(API)return api('/topup/'+op,b);
+const a=TL(),me=myId();
+if(op==='create'){a.unshift({id:uid(),uid:me,...b,status:'new',ts:Date.now(),claimed:0});TSV(a);return{ok:1}}
+if(op==='mine')return{list:a.filter(x=>x.uid===me)};
+if(op==='list')return isA()?{list:a}:{err:'Нет доступа'};
+if(op==='resolve'){const x=a.find(r=>r.id===b.id);if(!isA()||!x)return{err:'Ошибка'};x.status=b.status;TSV(a);return{ok:1}}
+if(op==='claim'){let t=0;a.forEach(x=>{if(x.uid===me&&x.status==='approved'&&!x.claimed){x.claimed=1;t+=x.total}});TSV(a);return{amt:t}}
+return{err:'?'}}
+async function topupClaim(quiet){const r=await tApi('claim',{});if(r&&r.amt>0){S.bal+=r.amt;save();hdr();toast('+'+fmt(r.amt)+' монет за пополнение');if(!quiet&&tab==='topup'&&!busy)vTopup()}}
+$('#plus').onclick=()=>nav('topup');
+if(isA())$('#nav').insertAdjacentHTML('beforeend','<button data-t="admin"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8.5L4 20z"/><path d="M8 9.500h8M8 12.500h5"/></svg>Заявки</button>');
+setTimeout(()=>topupClaim(),3000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)topupClaim()});
+
+const TRADE_NICK='timlok308d',TMIN=99; // ник для трейда в Steal a Brainrot и минимальная цена предмета (Garama = 99)
+const ADMIN_USER=''; // <-- твой @username в Telegram БЕЗ @ (чтобы заявка сразу открывалась в твоём чате)
+const SALT='31634eacbdf6dad4'; // секретная строка для кодов оплаты, можно поменять на свою
+const hsh=t=>{let h=2166136261;for(const c of t){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0}return h.toString(36).toUpperCase().padStart(7,'0')};
+const sign=(r,a,u)=>hsh(r+'|'+a+'|'+u+'|'+SALT)+hsh(SALT+'|'+u+'|'+a+'|'+r);
+const b64=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const unb64=t=>JSON.parse(decodeURIComponent(escape(atob(t.replace(/-/g,'+').replace(/_/g,'/')))));
+function payRedeem(code){const m=/^PAY-([A-Z0-9]{4,10})-(\d{1,9})-([A-Z0-9]{10,16})$/.exec(code);if(!m)return'Неверный код';const r=m[1],a=+m[2];
+if(sign(r,a,myId())!==m[3])return'Код не подходит к этому аккаунту';S.paid=S.paid||[];if(S.paid.includes(r))return'Этот код уже использован';
+S.paid.push(r);S.bal+=a;save();hdr();const l=TL(),x=l.find(q=>q.id===r);if(x){x.status='approved';x.claimed=1;TSV(l)}return a}
+function sendReq(nick,e,tot){const u=(TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user)||{},r=uid().toUpperCase().slice(0,6).padEnd(6,'0');
+const pl={r,u:myId(),n:nick,p:cleanCode(T.promo),b:T.note.trim(),i:e.map(([i,n])=>i+':'+n).join(','),t:tot,un:u.username||''};
+const msg='📥 Заявка на пополнение BrainrotX\nНик Roblox: '+nick+'\nTelegram: '+(u.username?'@'+u.username+' · ':'')+'ID '+myId()+'\nБрейнроты: '+e.map(([i,n])=>I[i][1]+' ×'+n).join(', ')+'\nИтого: '+fmt(tot)+' монет'+(pl.p?'\nПромокод: '+pl.p:'')+(pl.b?'\nБафы: '+pl.b:'')+'\n\nBRXREQ:'+b64(pl);
+const a=TL();a.unshift({id:r,uid:myId(),total:tot,status:'new',ts:Date.now()});TSV(a);S.rn=nick;save();T.sel={};T.note='';
+if(tab==='topup')vTopup();
+modal(`<h3>Заявка создана</h3><p style="margin-bottom:10px">Зайди в Steal a Brainrot и кинь трейд нам на ник:</p><div class="who" style="margin:0 0 12px;text-align:left"><span>🎮</span><div><b>${TRADE_NICK}</b><small>Ник в Roblox</small></div></div><p>После того как отдашь брейнрота, тебе пополнятся монеты. Нажми кнопку ниже, чтобы админ увидел твою заявку.</p><button class="btn" id="k1">Отправить заявку админу</button><button class="btn ghost" id="k">Закрыть</button>`);
+$('#k').onclick=close;
+$('#k1').onclick=()=>{if(ADMIN_USER){const url='https://t.me/'+ADMIN_USER+'?text='+encodeURIComponent(msg);TG&&TG.openTelegramLink?TG.openTelegramLink(url):window.open(url,'_blank');close()}
+else{try{navigator.clipboard.writeText(msg).catch(()=>{})}catch(x){}modal('<h3 style="margin-bottom:14px">Ваша заявка</h3><textarea readonly id="rqt" style="width:100%;height:110px;margin-bottom:12px;background:#0005;border:1px solid var(--line);color:var(--tx);border-radius:12px;padding:10px;font:600 12px Manrope"></textarea><button class="btn" id="k">Ок</button>');$('#rqt').value=msg;$('#k').onclick=close}}}
+
+function vAdminMsg(){
+$('#view').innerHTML=`<h2>Заявки</h2><p class="cnote" style="text-align:left;margin:-6px 0 12px">Игрок присылает заявку тебе в личку. Вставь её сюда, проверь и получи код оплаты для игрока.</p><div class="bet"><textarea id="aq" placeholder="Вставь сообщение с заявкой"></textarea></div><button class="btn" id="ac">Проверить заявку</button><div id="alist" style="margin-top:12px"></div>`;
+$('#ac').onclick=()=>{const m=/BRXREQ:([A-Za-z0-9_-]+)/.exec($('#aq').value);let d;try{d=unb64(m[1])}catch(e){return toast('Заявка не распознана')}
+if(!/^[A-Z0-9]{4,10}$/.test(String(d.r)))return toast('Заявка не распознана');
+const its=String(d.i||'').split(',').map(x=>x.split(':').map(Number)).filter(([i,n])=>I[i]&&I[i][3]>=TMIN&&n>0),calc=its.reduce((a,[i,n])=>a+I[i][3]*n,0);
+if(!calc)return toast('Пустая заявка');
+$('#alist').innerHTML=`<div class="rq"><div class="rh"><b>${esc(d.n)}</b><span class="st new">${esc(d.r)}</span></div><small>${d.un?'@'+esc(d.un)+' · ':''}ID ${esc(d.u)}</small>${d.p?`<small>Промокод: ${esc(d.p)}</small>`:''}${d.b?`<small>Бафы: ${esc(d.b)}</small>`:''}<div class="ri">${its.map(([i,n])=>`<span>${esc(I[i][1])} ×${n}</span>`).join('')}</div><div class="rt">${co()}${fmt(calc)}</div>${calc!==+d.t?'<small style="color:#ff4d5e">⚠ Сумма в заявке не совпадает с каталогом</small>':''}<button class="btn" id="aok">✅ Принять и получить код</button><div id="acode"></div></div>`;
+$('#aok').onclick=()=>{const code='PAY-'+d.r+'-'+calc+'-'+sign(d.r,calc,+d.u);$('#acode').innerHTML=`<div class="who" style="margin:10px 0 0"><span>🔑</span><div><b id="acv" style="word-break:break-all">${esc(code)}</b><small>Отправь этот код игроку</small></div></div><button class="btn ghost" id="acp" style="margin-top:8px">Скопировать код</button>`;$('#acp').onclick=()=>{try{navigator.clipboard.writeText(code).catch(()=>{})}catch(e){}toast('Скопировано')}}}}
+
+let T={sel:{},q:'',nick:'',promo:'',note:''};
+const tSum=()=>{const e=Object.entries(T.sel);return{e,cnt:e.reduce((a,[,n])=>a+n,0),tot:e.reduce((a,[i,n])=>a+I[i][3]*n,0)}};
+function tGrid(){const q=T.q.trim().toLowerCase(),ids=I.map((x,i)=>i).filter(i=>I[i][3]>=TMIN&&(!q||String(I[i][1]).toLowerCase().includes(q))).sort((a,b)=>I[b][3]-I[a][3]);
+$('#tgrid').innerHTML=ids.length?`<div class="grid3">${ids.map(i=>{const n=T.sel[i]||0;return tile(i,n?'sel':'','button',`data-i="${i}"`).replace('</button>',(n?'<i class="mn">−</i>':'')+`<i class="ck">${n>1?n:'✓'}</i></button>`)}).join('')}</div>`:'<div class="empty">Ничего не найдено</div>'}
+function tBar(){const{cnt,tot}=tSum();$('#tc').textContent=cnt;$('#tt').innerHTML=cnt?co()+fmt(tot):''}
+function vTopup(){if(!T.nick)T.nick=S.rn||'';
+$('#view').innerHTML=`<button class="back" id="bk">← Назад</button><h2>Пополнение</h2><p class="cnote" style="text-align:left;margin:-6px 0 12px">Пополнение от ${fmt(TMIN)} монет (от Garama and Madundung). После заявки кинь трейд на ник <b>${TRADE_NICK}</b> в Steal a Brainrot.</p>
+<h3 class="sub" style="margin-top:6px">Твой ник в Roblox</h3><div class="bet"><input id="tn" maxlength="30" autocomplete="off" value="${esc(T.nick)}"></div>
+<h3 class="sub" style="margin-top:6px">Промокод или реф-код (если есть)</h3><div class="bet"><input id="tp" maxlength="20" autocapitalize="characters" autocomplete="off" value="${esc(T.promo)}"></div>
+<h3 class="sub" style="margin-top:6px">Доплата за бафы</h3><div class="bet"><input id="tb" maxlength="120" placeholder="Например: Gold, Rainbow, мутации" autocomplete="off" value="${esc(T.note)}"></div>
+<h3 class="sub" style="margin-top:6px">Что хочешь пополнить</h3><div class="bet"><input id="tq" type="search" placeholder="Найти брейнрота" autocomplete="off" value="${esc(T.q)}"></div>
+<div id="tgrid"></div><div class="tbar"><div class="sm">Выбрано: <span id="tc">0</span><div id="tt" style="color:var(--g1)"></div></div><button class="btn" id="tsend">Отправить заявку</button></div>
+${API?'':'<h3 class="sub">Есть код от админа?</h3><div class="bet"><input id="tcode" maxlength="48" placeholder="PAY-..." autocomplete="off" autocapitalize="characters"><button id="tcb">Получить</button></div>'}<h3 class="sub">Мои заявки</h3><div id="tmy"><div class="empty">Загрузка…</div></div>`;
+$('#bk').onclick=()=>nav('cases');
+$('#tn').oninput=e=>{T.nick=e.target.value};$('#tb').oninput=e=>{T.note=e.target.value};
+$('#tp').oninput=e=>{e.target.value=cleanCode(e.target.value);T.promo=e.target.value};
+$('#tq').oninput=e=>{T.q=e.target.value;tGrid()};
+$('#tgrid').onclick=e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;
+if(e.target.closest('.mn')){T.sel[i]=(T.sel[i]||1)-1;if(T.sel[i]<=0)delete T.sel[i]}else T.sel[i]=Math.min(99,(T.sel[i]||0)+1);tGrid();tBar()};
+$('#tsend').onclick=async()=>{const nick=T.nick.trim(),{e,cnt,tot}=tSum();
+if(nick.length<3)return toast('Введи ник Roblox');if(!cnt)return toast('Выбери брейнротов');
+if(!API)return sendReq(nick,e,tot);
+const b=$('#tsend');b.disabled=true;const u=(TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user)||{};
+const r=await tApi('create',{nick,promo:cleanCode(T.promo),note:T.note.trim(),items:e.map(([i,n])=>({name:I[i][1],n,price:I[i][3]})),total:tot,username:u.username||''});
+b.disabled=false;if(r.ok){S.rn=nick;save();T.sel={};T.note='';toast('Заявка отправлена');if(tab==='topup')vTopup()}else toast(r.err||'Ошибка')};
+if(!API){$('#tcode').oninput=e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,48)};$('#tcb').onclick=()=>{const c=$('#tcode').value;if(!c)return toast('Введи код');const r=payRedeem(c);if(typeof r==='number'){toast('+'+fmt(r)+' монет');vTopup()}else toast(r)}}
+tGrid();tBar();
+(async()=>{await topupClaim(1);const r=await tApi('mine',{});if(tab!=='topup')return;const l=r.list||[];
+$('#tmy').innerHTML=l.length?l.slice(0,10).map(x=>`<div class="who"><span>📦</span><div><b>${fmt(x.total)} монет</b><small>${ST[x.status]||''} · ${new Date(x.ts).toLocaleDateString('ru-RU')}</small></div></div>`).join(''):'<div class="empty">Заявок пока нет.</div>'})()}
+
+function vAdmin(){if(!isA()){tab='cases';return draw()}if(!API)return vAdminMsg();let f='new';
+$('#view').innerHTML=`<h2>Заявки</h2><div class="seg" id="af"><button data-f="new" class="on">Новые</button><button data-f="all">Все</button></div><button class="btn ghost" id="ar">Обновить</button><div id="alist" style="margin-top:12px"><div class="empty">Загрузка…</div></div>`;
+const load=async()=>{const r=await tApi('list',{});if(tab!=='admin')return;if(r.err)return $('#alist').innerHTML=`<div class="empty">${esc(r.err)}</div>`;
+const l=(r.list||[]).filter(x=>f==='all'||x.status==='new');
+$('#alist').innerHTML=l.length?l.map(x=>`<div class="rq"><div class="rh"><b>${esc(x.nick)}</b><span class="st ${esc(x.status)}">${ST[x.status]||''}</span></div>
+<small>${x.username?'@'+esc(x.username)+' · ':''}ID ${esc(x.uid)} · ${new Date(x.ts).toLocaleString('ru-RU')}</small>${x.promo?`<small>Промокод: ${esc(x.promo)}</small>`:''}${x.note?`<small>Бафы: ${esc(x.note)}</small>`:''}
+<div class="ri">${(x.items||[]).map(i=>`<span>${esc(i.name)} ×${esc(i.n)}</span>`).join('')}</div><div class="rt">${co()}${fmt(x.total)}</div>
+${x.status==='new'?`<div class="rb" data-id="${esc(x.id)}"><button class="btn" data-a="approved">✅ Принять</button><button class="btn ghost" data-a="rejected">❌ Отклонить</button></div>`:''}</div>`).join(''):'<div class="empty">Заявок нет</div>'};
+$('#af').onclick=e=>{const b=e.target.closest('button');if(!b)return;f=b.dataset.f;document.querySelectorAll('#af button').forEach(x=>x.classList.toggle('on',x===b));load()};
+$('#ar').onclick=load;
+$('#alist').onclick=async e=>{const b=e.target.closest('button[data-a]');if(!b)return;b.disabled=true;const r=await tApi('resolve',{id:b.parentElement.dataset.id,status:b.dataset.a});toast(r.ok?(b.dataset.a==='approved'?'Принято':'Отклонено'):(r.err||'Ошибка'));load()};
+load()}
 
 function vCases(){$('#view').innerHTML=`<h2>Кейсы</h2><div class="grid">${CS.map((c,i)=>`<button class="case" data-i="${i}" style="--c:${c.col}"><div class="ce">${caseSvg(c,88)}</div><h3>${c.n}</h3><p>${c.free?'Бесплатно':co()+fmt(c.price)}</p></button>`).join('')}</div>`;
 document.querySelectorAll('.case').forEach(b=>b.onclick=()=>{cur=+b.dataset.i;draw()})}
@@ -263,10 +359,17 @@ $('#rs').onclick=()=>{modal(`<h3>Сбросить прогресс?</h3><p>Мо�
 
 if(S.bal<20&&!S.inv.length){S.bal=200;save()}
 draw();cloudLoad();
-// bubbles
-const cv=$('#bg'),cx=cv.getContext('2d');let P=[];const rs=()=>{cv.width=innerWidth;cv.height=innerHeight};rs();addEventListener('resize',rs);
-for(let i=0;i<28;i++)P.push({x:Math.random(),y:Math.random(),r:2+Math.random()*5,v:.0003+Math.random()*.0007});
-if(!matchMedia('(prefers-reduced-motion:reduce)').matches)(function f(){cx.clearRect(0,0,cv.width,cv.height);for(const p of P){p.y-=p.v;if(p.y<-.05){p.y=1.05;p.x=Math.random()}cx.beginPath();cx.arc(p.x*cv.width,p.y*cv.height,p.r,0,7);cx.fillStyle='rgba(255,168,64,.13)';cx.fill()}requestAnimationFrame(f)})();
+// rain
+const cv=$('#bg'),cx=cv.getContext('2d');let D=[],W=0,H=0,fl=0;
+const rs=()=>{const d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0)};rs();addEventListener('resize',rs);
+const drop=init=>{const z=Math.random();return{x:Math.random()*(W+160)-40,y:init?Math.random()*H:-40,l:10+z*24,v:8+z*15,a:.08+z*.22,w:.5+z*1}};
+for(let i=0;i<Math.min(170,Math.floor(W/3));i++)D.push(drop(1));
+if(!matchMedia('(prefers-reduced-motion:reduce)').matches)(function f(){cx.clearRect(0,0,W,H);
+if(fl>0){cx.fillStyle='rgba(190,215,255,'+fl*.07+')';cx.fillRect(0,0,W,H);fl-=.04}else if(Math.random()<.0007)fl=1;
+cx.lineCap='round';
+for(const p of D){p.y+=p.v;p.x+=p.v*.22;if(p.y>H+40||p.x>W+60){Object.assign(p,drop(0));p.x=Math.random()*(W+160)-100}
+cx.strokeStyle='rgba(170,200,255,'+p.a+')';cx.lineWidth=p.w;cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x-p.l*.22,p.y-p.l);cx.stroke()}
+requestAnimationFrame(f)})();
 </script>
 </body>
 </html>
