@@ -180,10 +180,10 @@ return{err:'?'}}
 async function topupClaim(quiet){const r=await tApi('claim',{});if(r&&r.amt>0){S.bal+=r.amt;save();hdr();toast('+'+fmt(r.amt)+' монет за пополнение');if(!quiet&&tab==='topup'&&!busy)vTopup()}}
 $('#plus').onclick=()=>nav('topup');
 if(isA())$('#nav').insertAdjacentHTML('beforeend','<button data-t="admin"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8.5L4 20z"/><path d="M8 9.500h8M8 12.500h5"/></svg>Заявки</button>');
-setTimeout(()=>topupClaim(),3000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)topupClaim()});
+setTimeout(()=>topupClaim(),3000);if(API)setInterval(()=>topupClaim(),30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)topupClaim()});
 
 const TRADE_NICK='timlok308d',TMIN=99; // ник для трейда в Steal a Brainrot и минимальная цена предмета (Garama = 99)
-const ADMIN_USER=''; // <-- твой @username в Telegram БЕЗ @ (чтобы заявка сразу открывалась в твоём чате)
+const ADMIN_USER='@busterlox22'; // <-- твой @username в Telegram БЕЗ @ (чтобы заявка сразу открывалась в твоём чате)
 const SALT='31634eacbdf6dad4'; // секретная строка для кодов оплаты, можно поменять на свою
 const hsh=t=>{let h=2166136261;for(const c of t){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0}return h.toString(36).toUpperCase().padStart(7,'0')};
 const sign=(r,a,u)=>hsh(r+'|'+a+'|'+u+'|'+SALT)+hsh(SALT+'|'+u+'|'+a+'|'+r);
@@ -203,13 +203,19 @@ $('#k1').onclick=()=>{if(ADMIN_USER){const url='https://t.me/'+ADMIN_USER+'?text
 else{try{navigator.clipboard.writeText(msg).catch(()=>{})}catch(x){}modal('<h3 style="margin-bottom:14px">Ваша заявка</h3><textarea readonly id="rqt" style="width:100%;height:110px;margin-bottom:12px;background:#0005;border:1px solid var(--line);color:var(--tx);border-radius:12px;padding:10px;font:600 12px Manrope"></textarea><button class="btn" id="k">Ок</button>');$('#rqt').value=msg;$('#k').onclick=close}}}
 
 function vAdminMsg(){
-$('#view').innerHTML=`<h2>Заявки</h2><p class="cnote" style="text-align:left;margin:-6px 0 12px">Игрок присылает заявку тебе в личку. Вставь её сюда, проверь и получи код оплаты для игрока.</p><div class="bet"><textarea id="aq" placeholder="Вставь сообщение с заявкой"></textarea></div><button class="btn" id="ac">Проверить заявку</button><div id="alist" style="margin-top:12px"></div>`;
-$('#ac').onclick=()=>{const m=/BRXREQ:([A-Za-z0-9_-]+)/.exec($('#aq').value);let d;try{d=unb64(m[1])}catch(e){return toast('Заявка не распознана')}
+$('#view').innerHTML=`<h2>Заявки</h2><p class="cnote" style="text-align:left;margin:-6px 0 12px">Скопируй сообщение с заявкой от игрока в Telegram и нажми «Вставить из буфера».</p><button class="btn" id="ap">📋 Вставить из буфера</button><div class="bet" style="margin-top:10px"><textarea id="aq" placeholder="или вставь сообщение с заявкой сюда"></textarea></div><button class="btn ghost" id="ac">Проверить заявку</button><div id="alist" style="margin-top:12px"></div>`;
+const cp=t=>{try{navigator.clipboard.writeText(t).catch(()=>{})}catch(e){}};
+const show=()=>{const m=/BRXREQ:([A-Za-z0-9_-]+)/.exec($('#aq').value);let d;try{d=unb64(m[1])}catch(e){return toast('Заявка не распознана')}
 if(!/^[A-Z0-9]{4,10}$/.test(String(d.r)))return toast('Заявка не распознана');
 const its=String(d.i||'').split(',').map(x=>x.split(':').map(Number)).filter(([i,n])=>I[i]&&I[i][3]>=TMIN&&n>0),calc=its.reduce((a,[i,n])=>a+I[i][3]*n,0);
 if(!calc)return toast('Пустая заявка');
-$('#alist').innerHTML=`<div class="rq"><div class="rh"><b>${esc(d.n)}</b><span class="st new">${esc(d.r)}</span></div><small>${d.un?'@'+esc(d.un)+' · ':''}ID ${esc(d.u)}</small>${d.p?`<small>Промокод: ${esc(d.p)}</small>`:''}${d.b?`<small>Бафы: ${esc(d.b)}</small>`:''}<div class="ri">${its.map(([i,n])=>`<span>${esc(I[i][1])} ×${n}</span>`).join('')}</div><div class="rt">${co()}${fmt(calc)}</div>${calc!==+d.t?'<small style="color:#ff4d5e">⚠ Сумма в заявке не совпадает с каталогом</small>':''}<button class="btn" id="aok">✅ Принять и получить код</button><div id="acode"></div></div>`;
-$('#aok').onclick=()=>{const code='PAY-'+d.r+'-'+calc+'-'+sign(d.r,calc,+d.u);$('#acode').innerHTML=`<div class="who" style="margin:10px 0 0"><span>🔑</span><div><b id="acv" style="word-break:break-all">${esc(code)}</b><small>Отправь этот код игроку</small></div></div><button class="btn ghost" id="acp" style="margin-top:8px">Скопировать код</button>`;$('#acp').onclick=()=>{try{navigator.clipboard.writeText(code).catch(()=>{})}catch(e){}toast('Скопировано')}}}}
+const dec=(S.dec||{})[d.r],code='PAY-'+d.r+'-'+calc+'-'+sign(d.r,calc,+d.u);
+$('#alist').innerHTML=`<div class="rq"><div class="rh"><b>${esc(d.n)}</b><span class="st ${dec==='a'?'approved':dec==='r'?'rejected':'new'}">${dec==='a'?'✅ Принята':dec==='r'?'❌ Отклонена':'⏳ Новая'}</span></div><small>${d.un?'@'+esc(d.un)+' · ':''}ID ${esc(d.u)}</small>${d.p?`<small>Промокод: ${esc(d.p)}</small>`:''}${d.b?`<small>Бафы: ${esc(d.b)}</small>`:''}<div class="ri">${its.map(([i,n])=>`<span>${esc(I[i][1])} ×${n}</span>`).join('')}</div><div class="rt">${co()}${fmt(calc)}</div>${calc!==+d.t?'<small style="color:#ff4d5e">⚠ Сумма в заявке не совпадает с каталогом</small>':''}
+${!dec?'<div class="rb"><button class="btn" id="aok">✅ Принять</button><button class="btn ghost" id="arj">❌ Отклонить</button></div>':dec==='r'?'<small>Монеты игроку не придут.</small>':`<div class="who" style="margin:4px 0 0"><span>🔑</span><div><b id="acv" style="word-break:break-all">${esc(code)}</b><small>Отправь этот код игроку</small></div></div><button class="btn ghost" id="acp">Скопировать код</button>`}</div>`;
+const set=v=>{S.dec=S.dec||{};S.dec[d.r]=v;save();if(v==='a'){cp(code);toast('Принято, код скопирован')}else toast('Отклонено');show()};
+if(!dec){$('#aok').onclick=()=>set('a');$('#arj').onclick=()=>set('r')}else if(dec==='a')$('#acp').onclick=()=>{cp(code);toast('Скопировано')}};
+$('#ac').onclick=show;
+$('#ap').onclick=async()=>{let t='';try{t=await navigator.clipboard.readText()}catch(e){}if(t&&t.includes('BRXREQ:')){$('#aq').value=t;show()}else toast('В буфере нет заявки, вставь её вручную')}}
 
 let T={sel:{},q:'',nick:'',promo:'',note:''};
 const tSum=()=>{const e=Object.entries(T.sel);return{e,cnt:e.reduce((a,[,n])=>a+n,0),tot:e.reduce((a,[i,n])=>a+I[i][3]*n,0)}};
@@ -235,7 +241,7 @@ if(nick.length<3)return toast('Введи ник Roblox');if(!cnt)return toast('
 if(!API)return sendReq(nick,e,tot);
 const b=$('#tsend');b.disabled=true;const u=(TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user)||{};
 const r=await tApi('create',{nick,promo:cleanCode(T.promo),note:T.note.trim(),items:e.map(([i,n])=>({name:I[i][1],n,price:I[i][3]})),total:tot,username:u.username||''});
-b.disabled=false;if(r.ok){S.rn=nick;save();T.sel={};T.note='';toast('Заявка отправлена');if(tab==='topup')vTopup()}else toast(r.err||'Ошибка')};
+b.disabled=false;if(r.ok){S.rn=nick;save();T.sel={};T.note='';if(tab==='topup')vTopup();modal('<h3>Заявка создана</h3><p style="margin-bottom:10px">Зайди в Steal a Brainrot и кинь трейд нам на ник:</p><div class="who" style="margin:0 0 12px;text-align:left"><span>🎮</span><div><b>'+TRADE_NICK+'</b><small>Ник в Roblox</small></div></div><p>После того как отдашь брейнрота, тебе пополнятся монеты.</p><button class="btn" id="k">Закрыть</button>');$('#k').onclick=close}else toast(r.err||'Ошибка')};
 if(!API){$('#tcode').oninput=e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,48)};$('#tcb').onclick=()=>{const c=$('#tcode').value;if(!c)return toast('Введи код');const r=payRedeem(c);if(typeof r==='number'){toast('+'+fmt(r)+' монет');vTopup()}else toast(r)}}
 tGrid();tBar();
 (async()=>{await topupClaim(1);const r=await tApi('mine',{});if(tab!=='topup')return;const l=r.list||[];
