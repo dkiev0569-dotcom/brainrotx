@@ -183,7 +183,7 @@ if(isA())$('#nav').insertAdjacentHTML('beforeend','<button data-t="admin"><svg v
 setTimeout(()=>topupClaim(),3000);if(API)setInterval(()=>topupClaim(),30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)topupClaim()});
 
 const TRADE_NICK='timlok308d',TMIN=99; // ник для трейда в Steal a Brainrot и минимальная цена предмета (Garama = 99)
-const ADMIN_USER='@busterlox22'; // <-- твой @username в Telegram БЕЗ @ (чтобы заявка сразу открывалась в твоём чате)
+const ADMIN_USER=''; // <-- твой @username в Telegram БЕЗ @ (чтобы заявка сразу открывалась в твоём чате)
 const SALT='31634eacbdf6dad4'; // секретная строка для кодов оплаты, можно поменять на свою
 const hsh=t=>{let h=2166136261;for(const c of t){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0}return h.toString(36).toUpperCase().padStart(7,'0')};
 const sign=(r,a,u)=>hsh(r+'|'+a+'|'+u+'|'+SALT)+hsh(SALT+'|'+u+'|'+a+'|'+r);
