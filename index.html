@@ -127,7 +127,36 @@ function modal(h){try{TG&&TG.HapticFeedback&&TG.HapticFeedback.impactOccurred('m
 const close=()=>$('#md').classList.remove('on');
 function nav(t){if(busy||cr.on)return toast('Дождись конца раунда');clearInterval(tm);tab=t;cur=null;draw()}
 $('#nav').onclick=e=>{const b=e.target.closest('button');if(b)nav(b.dataset.t)};
-function draw(){hdr();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));({cases:cur===null?vCases:vCase,up:vUp,coin:vCoin,crash:vCrash,me:vMe})[tab]()}
+function draw(){hdr();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));({cases:cur===null?vCases:vCase,up:vUp,coin:vCoin,crash:vCrash,me:vMe,partner:vPartner})[tab]()}
+
+
+/* ===== ПАРТНЁРЫ И ПРОМОКОДЫ ===== */
+const PARTNERS=[8158983520]; // <-- сюда вписывай Telegram ID партнёров через запятую, например [123456789,987654321]
+const API=''; // <-- адрес твоего сервера для общих промокодов (пусто = тест только на этом устройстве)
+const myId=()=>{const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;return u?u.id:0};
+const isP=()=>PARTNERS.includes(myId());
+const PL=()=>{try{return JSON.parse(localStorage.getItem('brx_promos'))||{}}catch(e){return{}}},PS=o=>{try{localStorage.setItem('brx_promos',JSON.stringify(o))}catch(e){}};
+async function api(path,b){try{const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...b,initData:TG?TG.initData:''})});return await r.json()}catch(e){return{err:'Нет связи с сервером'}}}
+async function promoCreate(code,n,amt){if(API)return api('/promo/create',{code,n,amt});const d=PL();if(d[code])return{err:'Такой код уже существует'};d[code]={n,left:n,amt,by:myId()};PS(d);return{ok:1}}
+async function promoRedeem(code){if(API)return api('/promo/redeem',{code});const p=PL()[code];if(!p)return{err:'Код не найден'};if(p.left<=0)return{err:'Активации закончились'};const d=PL();d[code].left--;PS(d);return{ok:1,amt:p.amt}}
+async function promoList(){if(API)return api('/promo/list',{});const d=PL();return{list:Object.keys(d).filter(k=>d[k].by===myId()).map(k=>({code:k,n:d[k].n,left:d[k].left,amt:d[k].amt}))}}
+if(isP())$('#nav').insertAdjacentHTML('beforeend','<button data-t="partner"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9l-5.2 2.8 1-5.9L3.5 9.7l5.9-.8z"/></svg>Партнёр</button>');
+const cleanCode=v=>String(v||'').toUpperCase().replace(/[^A-Z0-9А-ЯЁ_-]/g,'').slice(0,20);
+function vPartner(){if(!isP()){tab='cases';return draw()}
+$('#view').innerHTML=`<h2>Партнёр</h2><div class="stats"><div><b id="pb">${fmt(S.bal)}</b>баланс</div><div><b id="pcost">100</b>спишется</div><div><b id="pcnt">…</b>промокодов</div></div>
+<h3 class="sub">Новый промокод</h3><div class="bet"><input id="pc" placeholder="Код (например STREAM10)" maxlength="20" autocapitalize="characters" autocomplete="off"></div>
+<div class="bet"><input id="pn" type="number" inputmode="numeric" min="1" max="1000" value="10" aria-label="Активаций"><input id="pa" type="number" inputmode="numeric" min="1" value="10" aria-label="Монет за активацию"></div>
+<p class="cnote" style="margin:0 0 12px">Слева — сколько активаций, справа — монет за одну. С баланса спишется всё сразу.</p>
+<button class="btn" id="pgo">Создать промокод</button><h3 class="sub">Мои промокоды</h3><div id="plist"><div class="empty">Загрузка…</div></div>`;
+const cost=()=>Math.max(0,Math.floor(+$('#pn').value||0))*Math.max(0,Math.floor(+$('#pa').value||0));
+const up=()=>{$('#pcost').textContent=fmt(cost())};$('#pn').oninput=up;$('#pa').oninput=up;up();$('#pc').oninput=e=>{e.target.value=cleanCode(e.target.value)};
+const list=async()=>{const r=await promoList();if(tab!=='partner')return;const l=r.list||[];$('#pcnt').textContent=l.length;$('#plist').innerHTML=l.length?l.map(x=>`<div class="who"><span>🎟️</span><div><b>${esc(x.code)}</b><small>${x.left}/${x.n} активаций · ${fmt(x.amt)} монет</small></div></div>`).join(''):'<div class="empty">Ты ещё не создавал промокоды.</div>'};
+$('#pgo').onclick=async()=>{const code=cleanCode($('#pc').value),n=Math.floor(+$('#pn').value),a=Math.floor(+$('#pa').value),c=n*a;
+if(code.length<3)return toast('Код: минимум 3 символа');if(!(n>=1&&n<=1000))return toast('Активаций: от 1 до 1000');if(!(a>=1))return toast('Монет за активацию: минимум 1');if(c>S.bal)return toast('Не хватает монет на балансе');
+const b=$('#pgo');b.disabled=true;S.bal-=c;save();hdr();$('#pb').textContent=fmt(S.bal);
+const r=await promoCreate(code,n,a);b.disabled=false;
+if(r.ok){toast('Промокод '+code+' создан');$('#pc').value='';list()}else{S.bal+=c;save();hdr();$('#pb').textContent=fmt(S.bal);toast(r.err||'Ошибка')}};
+list()}
 
 function vCases(){$('#view').innerHTML=`<h2>Кейсы</h2><div class="grid">${CS.map((c,i)=>`<button class="case" data-i="${i}" style="--c:${c.col}"><div class="ce">${caseSvg(c,88)}</div><h3>${c.n}</h3><p>${c.free?'Бесплатно':co()+fmt(c.price)}</p></button>`).join('')}</div>`;
 document.querySelectorAll('.case').forEach(b=>b.onclick=()=>{cur=+b.dataset.i;draw()})}
@@ -136,10 +165,10 @@ function setRl(c){const n=c.free?1:QN,r=$('#rl');r.className='rl'+(n>1?' m'+n:''
 function vCase(){const c=CS[cur];
 $('#view').innerHTML=`<button class="back" id="bk">← Кейсы</button><h2>${c.n}</h2><div class="rl" id="rl"></div>${c.free?'':'<div class="qty" id="qt"><button data-n="1">×1</button><button data-n="3">×3</button><button data-n="5">×5</button></div>'}<button class="btn" id="go"></button><button class="btn ghost" id="sk" hidden>Пропустить ⏭</button><label class="fast"><input type="checkbox" id="fs"> ⚡ Быстрое открытие</label><h3 class="sub">Что может выпасть</h3><div class="grid3">${[...c.pool].sort((a,b)=>I[a[0]][3]-I[b[0]][3]).map(([i,w])=>tile(i)).join('')}</div>`;
 $('#bk').onclick=()=>nav('cases');setRl(c);const fs=$('#fs');fs.checked=!!S.fast;fs.onchange=()=>{S.fast=fs.checked?1:0;save()};
-const lbl=()=>{if(c.free){const l=S.free+36e5-Date.now();$('#go').textContent=l>0?`Через ${Math.ceil(l/6e4)} мин`:'Открыть бесплатно';$('#go').disabled=l>0||busy}else{$('#go').innerHTML=`Открыть${QN>1?' ×'+QN:''} ${co()}${fmt(c.price*QN)}`;$('#go').disabled=S.bal<c.price*QN||busy}};
-lbl();tm=setInterval(lbl,15000);$('#go').onclick=()=>spin(c,lbl);
+const lbl=()=>{if(c.free){const l=S.free+864e5-Date.now(),mn=Math.ceil(l/6e4);$('#go').textContent=l>0?`Через ${Math.floor(mn/60)}ч ${mn%60}м`:'Открыть бесплатно';$('#go').disabled=l>0||busy}else{$('#go').innerHTML=`Открыть${QN>1?' ×'+QN:''} ${co()}${fmt(c.price*QN)}`;$('#go').disabled=S.bal<c.price*QN||busy}};
+lbl();tm=setInterval(lbl,30000);$('#go').onclick=()=>spin(c,lbl);
 if(!c.free)document.querySelectorAll('.qty button').forEach(b=>{b.classList.toggle('on',+b.dataset.n===QN);b.onclick=()=>{if(busy)return;QN=+b.dataset.n;document.querySelectorAll('.qty button').forEach(x=>x.classList.toggle('on',x===b));setRl(c);lbl()}})}
-function spin(c,lbl){if(busy)return;const n=c.free?1:QN;if(c.free){if(Date.now()-S.free<36e5)return}else{if(S.bal<c.price*n)return;S.bal-=c.price*n}
+function spin(c,lbl){if(busy)return;const n=c.free?1:QN;if(c.free){if(Date.now()-S.free<864e5)return}else{if(S.bal<c.price*n)return;S.bal-=c.price*n}
 busy=1;hdr();if(c.free)S.free=Date.now();$('#go').disabled=true;
 const ws=Array.from({length:n},()=>pick(c)),sts=[...document.querySelectorAll('#rl .strip')],rl=$('#rl'),sk=$('#sk'),base=S.fast?.9:5,gap=S.fast?.12:.35;
 sts.forEach((st,k)=>{st.style.transition='none';st.style.transform='none';st.innerHTML=strip(c,ws[k])});void rl.offsetWidth;
@@ -221,9 +250,14 @@ const esc=t=>String(t).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const who=()=>{const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;if(!u)return'';const nm=esc([u.first_name,u.last_name].filter(Boolean).join(' ')),un=u.username?'@'+esc(u.username):'';return `<div class="who">${u.photo_url?`<img src="${esc(u.photo_url)}" alt="">`:'<span>👤</span>'}<div><b>${nm}</b><small>${un}</small></div></div>`};
 function vMe(){const tot=S.inv.reduce((s,x)=>s+I[x.i][3],0);
 $('#view').innerHTML=`<h2>Профиль</h2>${who()}<div class="stats"><div><b>${S.opened}</b>кейсов открыто</div><div><b>${fmt(tot)}</b>стоимость коллекции</div><div><b>${S.best?fmt(S.best):'—'}</b>лучший дроп</div></div>
-<h3 class="sub">Инвентарь (${S.inv.length})</h3>${S.inv.length?`<div class="grid3 inv">${S.inv.map(x=>tile(x.i,'','button',`data-id="${x.id}"`)).join('')}</div><button class="btn ghost" id="sa" style="margin-top:14px">Продать всё до эпика</button>`:'<div class="empty">Пока пусто. Бонусный кейс бесплатный раз в час.</div>'}
+<h3 class="sub">Промокод</h3><div class="bet"><input id="pr" placeholder="Введи промокод" maxlength="20" autocapitalize="characters" autocomplete="off"><button id="prb">Активировать</button></div>
+<h3 class="sub">Инвентарь (${S.inv.length})</h3>${S.inv.length?`<div class="grid3 inv">${S.inv.map(x=>tile(x.i,'','button',`data-id="${x.id}"`)).join('')}</div><button class="btn ghost" id="sa" style="margin-top:14px">Продать всё до эпика</button>`:'<div class="empty">Пока пусто. Бонусный кейс бесплатный раз в 24 часа.</div>'}
 <button class="btn ghost" id="rs" style="margin-top:22px">Начать с нуля</button>`;
 document.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{const it=S.inv.find(x=>x.id===b.dataset.id),x=I[it.i];modal(`<div class="big" style="--c:${R[x[2]][0]}">${ic(x)}</div><h3>${x[1]}</h3><p>${R[x[2]][1]}, стоит ${co()}${fmt(x[3])}</p><button class="btn" id="s">Продать</button><button class="btn ghost" id="k">Оставить</button>`);$('#k').onclick=close;$('#s').onclick=()=>{sell(it.id);close();draw()}});
+$('#pr').oninput=e=>{e.target.value=cleanCode(e.target.value)};
+$('#prb').onclick=async()=>{const code=cleanCode($('#pr').value);if(code.length<3)return toast('Введи промокод');S.used=S.used||[];if(S.used.includes(code))return toast('Ты уже активировал этот код');
+const b=$('#prb');b.disabled=true;const r=await promoRedeem(code);b.disabled=false;
+if(r.ok){S.used.push(code);S.bal+=r.amt;save();hdr();$('#pr').value='';toast('+'+fmt(r.amt)+' монет')}else toast(r.err||'Ошибка')};
 const sa=$('#sa');if(sa)sa.onclick=()=>{S.inv.filter(x=>'cr'.includes(I[x.i][2])).forEach(x=>sell(x.id));draw()};
 $('#rs').onclick=()=>{modal(`<h3>Сбросить прогресс?</h3><p>Монеты и инвентарь вернутся к началу.</p><button class="btn" id="y">Сбросить</button><button class="btn ghost" id="n">Отмена</button>`);$('#n').onclick=close;$('#y').onclick=()=>{S={v:3,bal:1000,inv:[],free:0,opened:0,best:0,hist:[]};save();close();draw()}}}
 
