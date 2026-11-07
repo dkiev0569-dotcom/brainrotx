@@ -167,6 +167,14 @@ body{background:radial-gradient(ellipse 80% 50% at 50% -8%,#6cc8ff2e,transparent
 .bd i{display:block;font-style:normal;font-size:28px;margin-bottom:4px;filter:grayscale(1) brightness(.6)}
 .bd.on{color:var(--tx);border-color:#ffd23f66;background:linear-gradient(165deg,#ffd23f1a,var(--card));box-shadow:0 0 14px #ffd23f22}.bd.on i{filter:drop-shadow(0 0 8px #ffd23f88)}
 @media (prefers-reduced-motion:reduce){.coinw,.coinw::before,.coinw::after,.gw::before,.gw::after,.hero,.sar,.cf::after,#mus.on{animation:none}}
+
+/* аватарки в топе */
+.who span.av{position:relative;overflow:visible;background:none;display:block;width:48px;height:48px}
+.who span.av .ini{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;text-decoration:none;font:800 20px Unbounded,sans-serif;background:linear-gradient(135deg,#1c2a40,#0d1119);border:2px solid var(--line)}
+.who span.av img{position:absolute;inset:0;width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--line);background:#0d1119}
+.who span.av .rb{position:absolute;right:-6px;bottom:-5px;min-width:22px;height:22px;padding:0 5px;border-radius:99px;display:grid;place-items:center;font:800 12px/1 Manrope;font-style:normal;background:#0b0e15;border:1.5px solid var(--line);color:var(--tx);box-shadow:0 2px 6px #0008}
+.who span.av .rb.r1,.who.me span.av img{border-color:#ffd23f}.who span.av .rb.r2{border-color:#c9d3e0}.who span.av .rb.r3{border-color:#e08a4a}
+.who:has(.rb.r1) span.av img,.who:has(.rb.r1) span.av .ini{border-color:#ffd23f;box-shadow:0 0 14px #ffd23f66}
 </style>
 </head>
 <body>
@@ -360,6 +368,7 @@ $('#ap').onclick=async()=>{let t='';try{t=await navigator.clipboard.readText()}c
 const giveBox=()=>isA()?`<h3 class="sub">Выдать монеты себе</h3><div class="bet"><input id="gv" type="number" inputmode="numeric" min="1" placeholder="Сколько монет" autocomplete="off"><button id="gb">Выдать</button></div>`:'';
 const giveInit=()=>{const b=$('#gb');if(!b)return;b.onclick=()=>{if(!isA())return;const n=Math.floor(+$('#gv').value);if(!(n>=1&&n<=1e9))return toast('Введи сумму от 1 до 1 000 000 000');S.bal+=n;save();hdr();$('#gv').value='';toast('+'+fmt(n)+' монет')}};
 let lastTop=0;
+const myPhoto=()=>{const u=(TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user)||{};return /^https:\/\//.test(u.photo_url||'')?String(u.photo_url).slice(0,300):''},myUn=()=>{const u=(TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user)||{};return String(u.username||'').slice(0,32)};
 const myName=()=>{const u=(TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user)||{};return String(u.first_name||u.username||'Игрок').slice(0,16)};
 var topT;function topQ(){if(!API)return;clearTimeout(topT);topT=setTimeout(()=>topSend(1),4000)}
 const LDMIN=100;let LD=[];
@@ -371,17 +380,18 @@ LD=[...l.map(x=>({i:x.i,m:x.m|0,n:myName()})),...LD].slice(0,15);ldRender();l.fo
 async function ldPoll(){if(!API||document.hidden)return;const r=await api('/drop/list',{});if(r&&r.list){LD=r.list.slice(0,15);ldRender()}}
 setTimeout(()=>{ldRender();ldPoll();setInterval(ldPoll,10000)},300);
 const invVal=()=>S.inv.reduce((a,x)=>a+mv(x),0);
-async function topSend(force){if(!API)return;if(!force&&Date.now()-lastTop<15000)return;lastTop=Date.now();await api('/top/submit',{val:invVal(),name:myName()})}
+async function topSend(force){if(!API)return;if(!force&&Date.now()-lastTop<15000)return;lastTop=Date.now();await api('/top/submit',{val:invVal(),name:myName(),photo:myPhoto(),un:myUn()})}
 if(API){setInterval(()=>topSend(),60000);document.addEventListener('visibilitychange',()=>{if(document.hidden)topSend()})}
 function vTop(){const d=new Date(),dl=Math.ceil((new Date(d.getFullYear(),d.getMonth()+1,1)-d)/864e5);
 $('#view').innerHTML=`<button class="back" id="bk">← Назад</button><h2>Топ мира</h2><p class="cnote" style="margin:-6px 0 12px">По стоимости инвентаря</p><div class="who" style="margin-bottom:14px"><span>🎁</span><div><b>Каждый месяц топ-1 получает 1 Garama</b><small>Лидер по стоимости инвентаря в конце месяца · осталось ${dl} дн.</small></div></div><div id="tl"><div class="empty">Загрузка…</div></div>`;
 $('#bk').onclick=()=>nav('cases');
 const medal=i=>['🥇','🥈','🥉'][i]||String(i+1);
-const row=(i,n,b,me,id)=>`<div class="who${me?' me':''}"><span>${medal(i)}</span><div><b>${esc(n)}${me?' (ты)':''}</b><small>${co()}${fmt(b)}${id?' · ID '+esc(id):''}</small></div></div>`;
-(async()=>{if(!API){$('#tl').innerHTML=row(0,myName(),invVal(),1)+'<p class="cnote">Остальные игроки появятся, когда админ подключит сервер.</p>';return}
+const row=(i,n,b,me,id,ph,un)=>{let src=/^https:\/\//.test(ph||'')?ph:'';if(!src&&me)src=myPhoto();if(!src&&un&&/^[A-Za-z0-9_]{4,32}$/.test(un))src='https://t.me/i/userpic/160/'+un+'.jpg';
+return `<div class="who${me?' me':''}"><span class="av"><u class="ini">${esc((String(n).replace(/^[@\s]+/,'')[0]||'?').toUpperCase())}</u>${src?`<img src="${esc(src)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}<i class="rb r${i<3?i+1:0}">${medal(i)}</i></span><div><b>${esc(n)}${me?' (ты)':''}</b><small>${co()}${fmt(b)}${id?' · ID '+esc(id):''}</small></div></div>`};
+(async()=>{if(!API){$('#tl').innerHTML=row(0,myName(),invVal(),1,'','','')+'<p class="cnote">Остальные игроки появятся, когда админ подключит сервер.</p>';return}
 await topSend(1);const r=await api('/top/list',{});if(tab!=='top')return;
 if(r.err)return $('#tl').innerHTML=`<div class="empty">${esc(r.err)}</div>`;
-const l=r.list||[];$('#tl').innerHTML=(l.length?l.map((x,i)=>row(i,x.name,x.val,x.me,x.id)).join(''):'<div class="empty">Пока никого нет</div>')+(r.me&&r.me.rank>l.length?`<div class="cnote" style="margin-top:8px">Твоё место: ${r.me.rank}</div>`:'')})()}
+const l=r.list||[];$('#tl').innerHTML=(l.length?l.map((x,i)=>row(i,x.name,x.val,x.me,x.id,x.photo,x.un)).join(''):'<div class="empty">Пока никого нет</div>')+(r.me&&r.me.rank>l.length?`<div class="cnote" style="margin-top:8px">Твоё место: ${r.me.rank}</div>`:'')})()}
 let T={sel:{},q:'',nick:'',promo:'',note:''};
 const tSum=()=>{const e=Object.entries(T.sel);return{e,cnt:e.reduce((a,[,n])=>a+n,0),tot:e.reduce((a,[i,n])=>a+I[i][3]*n,0)}};
 function tGrid(){const q=T.q.trim().toLowerCase(),ids=I.map((x,i)=>i).filter(i=>I[i][3]>=TMIN&&(!q||String(I[i][1]).toLowerCase().includes(q))).sort((a,b)=>I[b][3]-I[a][3]);
