@@ -390,16 +390,17 @@ function sell(id){const k=S.inv.findIndex(x=>x.id===id);if(k<0)return;S.bal+=mv(
 const UE=8,UMAX=75,UMIN=2,GR=84,GC=2*Math.PI*GR;
 const upBet=()=>S.inv.filter(x=>U.sel.includes(x.id)).reduce((a,x)=>a+mv(x),0);
 const upCh=(b,v)=>b>0&&v>0?Math.floor(Math.min(UMAX,b/v*(100-UE))*100)/100:0;
-const upTars=b=>I.map((x,i)=>i).filter(i=>I[i][3]>b&&upCh(b,I[i][3])>=UMIN).sort((a,c)=>I[a][3]-I[c][3]);
-const upBest=(b,p)=>{let r=null;for(const i of upTars(b)){const d=Math.abs(upCh(b,I[i][3])-p);if(!r||d<r.d||(d===r.d&&I[i][3]>I[r.i][3]))r={i,d}}return r?r.i:null};
+const tV=t=>I[t%1000][3]*MM[t/1000|0],tI=t=>t%1000,tM=t=>t/1000|0;
+const upTars=b=>{const r=[];I.forEach((x,i)=>[0,1,2].forEach(m=>{const t=i+1000*m;if(tV(t)>b&&upCh(b,tV(t))>=UMIN)r.push(t)}));return r.sort((a,c)=>tV(a)-tV(c))};
+const upBest=(b,p)=>{let r=null;for(const i of upTars(b)){const d=Math.abs(upCh(b,tV(i))-p);if(!r||d<r.d||(d===r.d&&tV(i)>tV(r.i)))r={i,d}}return r?r.i:null};
 function vUp(){U.sel=U.sel.filter(id=>S.inv.some(x=>x.id===id));
 $('#view').innerHTML=`<h2>Апгрейд</h2><div class="gw" id="gw"><svg class="gauge" viewBox="0 0 200 200"><defs><linearGradient id="gG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd23f"/><stop offset="1" stop-color="#ff7a1a"/></linearGradient></defs><circle class="gt" cx="100" cy="100" r="97"/><circle class="gb" cx="100" cy="100" r="${GR}"/><circle class="gwn" id="gwin" cx="100" cy="100" r="${GR}" stroke-dasharray="0 ${GC}"/><g class="gp" id="gptr"><path d="M100 5l8 11-8 11-8-11z"/></g></svg><div class="gc"><b id="gpc">0%</b><span>шанс</span></div></div><div class="slots" id="slots"></div><div class="pcts" id="pcts"></div><div class="rng"><input type="range" id="rg" min="${UMIN}" max="${UMAX}" step="1"><b id="rv"></b></div><button class="btn" id="ug">Улучшить</button><label class="fast"><input type="checkbox" id="ufs"> ⚡ Быстрый апгрейд</label><div class="seg" id="seg"></div><div id="ugrid"></div>`;
 $('#rg').oninput=e=>setPct(+e.target.value);$('#ug').onclick=doUp;const uf=$('#ufs');uf.checked=!!S.fastUp;uf.onchange=()=>{S.fastUp=uf.checked?1:0;save()};upd()}
 function setPct(p){if(busy)return;const b=upBet();if(!b){toast('Сначала выбери предметы');return upd()}const t=upBest(b,p);if(t===null){toast('Для такого шанса нет цели');return upd()}U.t=t;U.pct=p;upd()}
-function upd(){const bet=upBet();let tg=U.t;if(tg!==null&&!(I[tg][3]>bet&&upCh(bet,I[tg][3])>=UMIN))tg=U.t=null;if(tg===null)U.pct=0;
-const ch=tg!==null?upCh(bet,I[tg][3]):0,sel=S.inv.filter(x=>U.sel.includes(x.id)),mini=i=>`<span class="mini" style="--c:${R[I[i][2]][0]}">${ic(I[i])}</span>`;
+function upd(){const bet=upBet();let tg=U.t;if(tg!==null&&!(tV(tg)>bet&&upCh(bet,tV(tg))>=UMIN))tg=U.t=null;if(tg===null)U.pct=0;
+const ch=tg!==null?upCh(bet,tV(tg)):0,sel=S.inv.filter(x=>U.sel.includes(x.id)),mini=(i,m)=>`<span class="mini${m?' mu'+m:''}" style="--c:${R[I[i][2]][0]}">${ic(I[i])}</span>`;
 $('#gwin').setAttribute('stroke-dasharray',`${GC*ch/100} ${GC}`);$('#gpc').textContent=(ch?+ch.toFixed(1):0)+'%';
-$('#slots').innerHTML=`<div class="slot"><label>Ставка</label><div class="sa">${sel.length?sel.slice(0,3).map(x=>mini(x.i)).join(''):'<em>Выбери предметы</em>'}</div><div class="sv">${bet?co()+fmt(bet):''}</div></div><div class="sar"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div class="slot" ${tg!==null?`style="--c:${R[I[tg][2]][0]}"`:''}><label>Цель</label><div class="sa">${tg!==null?mini(tg):'<em>Выбери цель</em>'}</div><div class="sv">${tg!==null?co()+fmt(I[tg][3]):''}</div></div>`;
+$('#slots').innerHTML=`<div class="slot"><label>Ставка</label><div class="sa">${sel.length?sel.slice(0,3).map(x=>mini(x.i,x.m)).join(''):'<em>Выбери предметы</em>'}</div><div class="sv">${bet?co()+fmt(bet):''}</div></div><div class="sar"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div class="slot" ${tg!==null?`style="--c:${tM(tg)?MT[tM(tg)][2]:R[I[tI(tg)][2]][0]}"`:''}><label>Цель</label><div class="sa">${tg!==null?mini(tI(tg),tM(tg))+(tM(tg)?`<small style="font:800 10px Manrope;color:${MT[tM(tg)][2]};margin-left:6px">${MT[tM(tg)][0]} ×${MM[tM(tg)]}</small>`:''):'<em>Выбери цель</em>'}</div><div class="sv">${tg!==null?co()+fmt(tV(tg)):''}</div></div>`;
 $('#ug').disabled=!(bet>0&&tg!==null)||busy;
 const hi=UMAX;$('#pcts').innerHTML=[75,50,30].map(p=>`<button data-p="${p}" class="${U.pct===p?'on':''}">${p}%</button>`).join('');
 $('#pcts').onclick=e=>{const b=e.target.closest('button');if(b)setPct(+b.dataset.p)};
@@ -408,14 +409,15 @@ $('#seg').innerHTML=`<button data-v="inv" class="${U.tab==='inv'?'on':''}">Мо�
 $('#seg').onclick=e=>{const b=e.target.closest('button');if(b){U.tab=b.dataset.v;upd()}};
 const g=$('#ugrid'),ck='<i class="ck">✓</i></button>';
 if(U.tab==='inv')g.innerHTML=S.inv.length?`<div class="grid3">${S.inv.map(x=>tile(x.i,U.sel.includes(x.id)?'sel':'','button',`data-id="${x.id}"`,x.m).replace('</button>',ck)).join('')}</div>`:'<div class="empty">Инвентарь пуст. Открой кейс, чтобы было что улучшать.</div>';
-else{const l=bet?upTars(bet):[];g.innerHTML=!bet?'<div class="empty">Сначала выбери предметы для ставки.</div>':!l.length?'<div class="empty">Для такой ставки нет целей. Добавь ещё предметов.</div>':`<div class="grid3">${l.map(i=>tile(i,i===tg?'sel':'','button',`data-t="${i}"`).replace('</button>',`<i class="pc">${+upCh(bet,I[i][3]).toFixed(1)}%</i>`+ck)).join('')}</div>`}
+else{const l=bet?upTars(bet).filter(t=>!U.f||tM(t)===U.f):[],fb=`<div class="qty">${['Все','☢ Радиоактивные','🌈 Радужные'].map((n,k)=>`<button data-f="${k}" class="${(U.f|0)===k?'on':''}">${n}</button>`).join('')}</div>`;g.innerHTML=!bet?'<div class="empty">Сначала выбери предметы для ставки.</div>':fb+(!l.length?'<div class="empty">Для такой ставки нет целей. Добавь ещё предметов.</div>':`<div class="grid3">${l.map(t=>tile(tI(t),t===tg?'sel':'','button',`data-t="${t}"`,tM(t)).replace('</button>',`<i class="pc">${+upCh(bet,tV(t)).toFixed(1)}%</i>`+ck)).join('')}</div>`)}
 g.onclick=e=>{const b=e.target.closest('button');if(!b||busy)return;
+if(b.dataset.f!==undefined){U.f=+b.dataset.f;return upd()}
 if(b.dataset.id){const id=b.dataset.id,k=U.sel.indexOf(id);k<0?U.sel.push(id):U.sel.splice(k,1);const nb=upBet();if(U.pct)U.t=nb?upBest(nb,U.pct):null}
 else if(b.dataset.t){U.t=+b.dataset.t;U.pct=0}upd()}}
 function doUp(){const bet=upBet(),tg=U.t;if(!bet||tg===null||busy)return;busy=1;$('#ug').disabled=true;$('#rg').disabled=true;
-const ch=upCh(bet,I[tg][3]),roll=Math.random()*100,win=roll<ch,p=$('#gptr'),fu=S.fastUp;
+const ch=upCh(bet,tV(tg)),roll=Math.random()*100,win=roll<ch,p=$('#gptr'),fu=S.fastUp;
 p.style.transition='none';p.style.transform='rotate(0deg)';void p.getBoundingClientRect();p.style.transition=`transform ${fu?.9:4.6}s cubic-bezier(.12,.75,.18,1)`;p.style.transform=`rotate(${(fu?720:2160)+roll*3.6}deg)`;
-const sel0=U.sel.slice();S.inv=S.inv.filter(x=>!sel0.includes(x.id));let it=null;if(win){it={id:uid(),i:tg};S.inv.unshift(it);S.best=Math.max(S.best,I[tg][3])}save();
+const sel0=U.sel.slice();S.inv=S.inv.filter(x=>!sel0.includes(x.id));let it=null;if(win){it={id:uid(),i:tI(tg),m:tM(tg)};S.inv.unshift(it);S.best=Math.max(S.best,mv(it))}save();
 setTimeout(()=>{busy=0;U.sel=[];U.t=null;U.pct=0;U.tab='inv';
 if(!win)sfx('lose');if(win)won(it);else{modal(`<div class="big" style="--c:#ff4d5e">💨</div><h3>Не вышло</h3><p>Ставка сгорела. Попробуй ещё раз.</p><button class="btn" id="k">Ок</button>`);$('#k').onclick=close}
 vUp()},fu?1000:4750)}
