@@ -119,8 +119,11 @@ let S=(()=>{try{return JSON.parse(localStorage.getItem('brx'))}catch(e){return n
 const OLDV={0:20,1:35,2:50,3:120,4:180,5:400,6:650,7:1500,8:2500};
 const mig=()=>{if(!S.v){S.inv=(S.inv||[]).filter(x=>{if(x.i<9){S.bal+=OLDV[x.i]||0;return false}x.i-=9;return true});S.v=2}
 if(S.v<3){S.inv=(S.inv||[]).filter(x=>{if(x.i<2){S.bal+=x.i?20000:8000;return false}x.i-=2;return true});S.v=3;try{localStorage.setItem('brx',JSON.stringify(S))}catch(e){}}};mig();
-let cloudT=0;
-const cloudSave=()=>{if(!CSG)return;clearTimeout(cloudT);cloudT=setTimeout(()=>{try{const str=JSON.stringify(S),n=Math.ceil(str.length/3500);CSG.setItem('brx_n',String(n),()=>{});for(let i=0;i<n;i++)CSG.setItem('brx_'+i,str.slice(i*3500,(i+1)*3500),()=>{})}catch(e){}},1500)};
+let cloudT=0,dirty=0;
+const cloudWrite=()=>{dirty=0;try{const str=JSON.stringify(S),n=Math.ceil(str.length/3500);CSG.setItem('brx_n',String(n),()=>{});for(let i=0;i<n;i++)CSG.setItem('brx_'+i,str.slice(i*3500,(i+1)*3500),()=>{})}catch(e){}};
+const cloudSave=()=>{if(!CSG)return;dirty=1;clearTimeout(cloudT);cloudT=setTimeout(cloudWrite,1500)};
+const flush=()=>{try{localStorage.setItem('brx',JSON.stringify(S))}catch(e){}if(CSG&&dirty){clearTimeout(cloudT);cloudWrite()}};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flush()});addEventListener('pagehide',flush);addEventListener('beforeunload',flush);
 const save=()=>{S.ts=Date.now();try{localStorage.setItem('brx',JSON.stringify(S))}catch(e){}cloudSave()};
 const cloudLoad=()=>{if(!CSG)return;try{CSG.getItem('brx_n',(e,v)=>{const n=+v;if(e||!n)return cloudSave();const keys=Array.from({length:n},(_,i)=>'brx_'+i);CSG.getItems(keys,(e2,r)=>{try{if(e2||!r)return;const d=JSON.parse(keys.map(k=>r[k]||'').join(''));if(d&&(d.ts||0)>(S.ts||0)&&!busy&&!cr.on){S=d;mig();try{localStorage.setItem('brx',JSON.stringify(S))}catch(x){}draw()}else if(!d||(d.ts||0)<(S.ts||0))cloudSave()}catch(x){}})})}catch(e){}};
 let QN=1;let tab='cases',cur=null,busy=0,cr={on:0},tm=0;let U={sel:[],t:null,pct:0,tab:'inv'};
@@ -138,7 +141,7 @@ function draw(){hdr();document.querySelectorAll('nav button').forEach(b=>b.class
 
 /* ===== ПАРТНЁРЫ И ПРОМОКОДЫ ===== */
 const PARTNERS=[8158983520]; // <-- сюда вписывай Telegram ID партнёров через запятую, например [123456789,987654321]
-const API='https://brainrotx.onrender.com'; // <-- адрес твоего сервера для общих промокодов (пусто = тест только на этом устройстве)
+const API=''; // <-- адрес твоего сервера для общих промокодов (пусто = тест только на этом устройстве)
 const myId=()=>{const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;return u?u.id:0};
 const isP=()=>PARTNERS.includes(myId());
 const PL=()=>{try{return JSON.parse(localStorage.getItem('brx_promos'))||{}}catch(e){return{}}},PS=o=>{try{localStorage.setItem('brx_promos',JSON.stringify(o))}catch(e){}};
@@ -272,10 +275,11 @@ lbl();tm=setInterval(lbl,30000);$('#go').onclick=()=>spin(c,lbl);
 if(!c.free)document.querySelectorAll('.qty button').forEach(b=>{b.classList.toggle('on',+b.dataset.n===QN);b.onclick=()=>{if(busy)return;QN=+b.dataset.n;document.querySelectorAll('.qty button').forEach(x=>x.classList.toggle('on',x===b));setRl(c);lbl()}})}
 function spin(c,lbl){if(busy)return;const n=c.free?1:QN;if(c.free){if(Date.now()-S.free<864e5)return}else{if(S.bal<c.price*n)return;S.bal-=c.price*n}
 busy=1;hdr();if(c.free)S.free=Date.now();$('#go').disabled=true;
-const ws=Array.from({length:n},()=>pick(c)),sts=[...document.querySelectorAll('#rl .strip')],rl=$('#rl'),sk=$('#sk'),base=S.fast?.9:5,gap=S.fast?.12:.35;
+const ws=Array.from({length:n},()=>pick(c)),sts=[...document.querySelectorAll('#rl .strip')],rl=$('#rl'),sk=$('#sk'),base=S.fast?.9:5,gap=S.fast?.12:.35,its=ws.map(i=>({id:uid(),i}));
+S.opened+=n;S.inv.push(...its);S.best=Math.max(S.best,...ws.map(i=>I[i][3]));save();
 sts.forEach((st,k)=>{st.style.transition='none';st.style.transform='none';st.innerHTML=strip(c,ws[k])});void rl.offsetWidth;
 sts.forEach((st,k)=>{const t=st.children[32],box=st.parentElement,off=t.offsetLeft+t.offsetWidth/2+(Math.random()-.5)*t.offsetWidth*.6-box.offsetWidth/2;st.style.transition=`transform ${base+k*gap}s cubic-bezier(.1,.75,.12,1)`;st.style.transform=`translateX(-${off}px)`});
-let fin=0,h;const finish=()=>{if(fin)return;fin=1;clearTimeout(h);sts.forEach(st=>st.style.transition='none');if(sk){sk.hidden=true;sk.onclick=null}rl.onclick=null;rl.classList.remove('sp');busy=0;S.opened+=n;const its=ws.map(i=>({id:uid(),i}));S.inv.push(...its);S.best=Math.max(S.best,...ws.map(i=>I[i][3]));save();hdr();lbl();n>1?wonMany(its):won(its[0])};
+let fin=0,h;const finish=()=>{if(fin)return;fin=1;clearTimeout(h);sts.forEach(st=>st.style.transition='none');if(sk){sk.hidden=true;sk.onclick=null}rl.onclick=null;rl.classList.remove('sp');busy=0;hdr();lbl();n>1?wonMany(its):won(its[0])};
 h=setTimeout(finish,(base+(n-1)*gap)*1000+200);if(sk){sk.hidden=false;sk.onclick=finish}rl.onclick=finish;rl.classList.add('sp')}
 
 function won(it){const x=I[it.i];modal(`<div class="big" style="--c:${R[x[2]][0]}">${ic(x)}</div><h3>${x[1]}</h3><p>${R[x[2]][1]}, стоит ${co()}${fmt(x[3])}</p><button class="btn" id="k">Забрать</button><button class="btn ghost" id="s">Продать за ${fmt(x[3])}</button>`);
@@ -311,8 +315,8 @@ else if(b.dataset.t){U.t=+b.dataset.t;U.pct=0}upd()}}
 function doUp(){const bet=upBet(),tg=U.t;if(!bet||tg===null||busy)return;busy=1;$('#ug').disabled=true;$('#rg').disabled=true;
 const ch=upCh(bet,I[tg][3]),roll=Math.random()*100,win=roll<ch,p=$('#gptr');
 p.style.transition='none';p.style.transform='rotate(0deg)';void p.getBoundingClientRect();p.style.transition='transform 4.6s cubic-bezier(.12,.75,.18,1)';p.style.transform=`rotate(${2160+roll*3.6}deg)`;
-setTimeout(()=>{busy=0;S.inv=S.inv.filter(x=>!U.sel.includes(x.id));let it=null;if(win){it={id:uid(),i:tg};S.inv.unshift(it);S.best=Math.max(S.best,I[tg][3])}
-U.sel=[];U.t=null;U.pct=0;U.tab='inv';save();
+const sel0=U.sel.slice();S.inv=S.inv.filter(x=>!sel0.includes(x.id));let it=null;if(win){it={id:uid(),i:tg};S.inv.unshift(it);S.best=Math.max(S.best,I[tg][3])}save();
+setTimeout(()=>{busy=0;U.sel=[];U.t=null;U.pct=0;U.tab='inv';
 if(win)won(it);else{modal(`<div class="big" style="--c:#ff4d5e">💨</div><h3>Не вышло</h3><p>Ставка сгорела. Попробуй ещё раз.</p><button class="btn" id="k">Ок</button>`);$('#k').onclick=close}
 vUp()},4750)}
 
@@ -341,9 +345,10 @@ $('#cgo').disabled=!bet||!!busy;
 $('#cgrid').innerHTML=S.inv.length?`<div class="grid3">${S.inv.map(x=>tile(x.i,G.sel.includes(x.id)?'sel':'','button',`data-id="${x.id}"`).replace('</button>',ck)).join('')}</div>`:'<div class="empty">Инвентарь пуст. Открой кейс, чтобы было что ставить.</div>'}
 function coinGo(){const bet=cBet();if(!bet||busy)return;busy=1;const sel=S.inv.filter(x=>G.sel.includes(x.id)),win=Math.random()*100<COIN_P,o=win?G.side:1-G.side,cn=$('#cn'),dur=S.fast?.9:2.4;
 $('#cgo').disabled=true;cn.style.transition='none';cn.style.transform='rotateY(0deg)';void cn.offsetWidth;cn.style.transition=`transform ${dur}s cubic-bezier(.15,.7,.2,1)`;cn.style.transform=`rotateY(${1800+o*180}deg)`;
-setTimeout(()=>{busy=0;const ids=new Set(G.sel);S.inv=S.inv.filter(x=>!ids.has(x.id));let got=[];
+const ids=new Set(G.sel);S.inv=S.inv.filter(x=>!ids.has(x.id));let got=[];
 if(win){sel.forEach(x=>got.push({id:uid(),i:x.i},{id:uid(),i:x.i}));S.inv.unshift(...got);S.best=Math.max(S.best,...sel.map(x=>I[x.i][3]))}
-G.sel=[];save();hdr();
+save();
+setTimeout(()=>{busy=0;G.sel=[];hdr();
 if(win){const mn=got.slice(0,10).map(x=>`<span class="mini" style="--c:${R[I[x.i][2]][0]}">${ic(I[x.i])}</span>`).join('');modal(`<div class="big" style="--c:#3ddc84">🪙</div><h3>Победа!</h3><p>Ставка удвоена: теперь у тебя ${got.length} предм. на ${co()}${fmt(bet*2)}</p><div class="sa" style="justify-content:center;flex-wrap:wrap">${mn}</div><button class="btn" id="k">Круто</button>`)}
 else modal(`<div class="big" style="--c:#ff4d5e">💨</div><h3>Не повезло</h3><p>Ставка сгорела. Попробуй ещё раз.</p><button class="btn" id="k">Ок</button>`);
 $('#k').onclick=close;vCoin()},dur*1000+250)}
