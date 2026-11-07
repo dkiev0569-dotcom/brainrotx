@@ -176,7 +176,7 @@ modal(`<div class="big" style="--c:${R[x[2]][0]}">${ic(x)}</div><h3>${up?'Улу
 
 /* ===== ПАРТНЁРЫ И ПРОМОКОДЫ ===== */
 const PARTNERS=[8158983520]; // <-- сюда вписывай Telegram ID партнёров через запятую, например [123456789,987654321]
-const API=''; // <-- адрес твоего сервера для общих промокодов (пусто = тест только на этом устройстве)
+const API='https://script.google.com/macros/s/AKfycbwStz1zlAaODhB3EuJraOp77Zrsovp-X_O2u5xyd2AoSqyPe8NrBGTeA9-aJ3yfk36Q/exec'; // <-- адрес твоего сервера для общих промокодов (пусто = тест только на этом устройстве)
 const myId=()=>{const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;return u?u.id:0};
 const isP=()=>PARTNERS.includes(myId());
 const PL=()=>{try{return JSON.parse(localStorage.getItem('brx_promos'))||{}}catch(e){return{}}},PS=o=>{try{localStorage.setItem('brx_promos',JSON.stringify(o))}catch(e){}};
