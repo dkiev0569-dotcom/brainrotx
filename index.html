@@ -119,10 +119,11 @@ let S=(()=>{try{return JSON.parse(localStorage.getItem('brx'))}catch(e){return n
 const OLDV={0:20,1:35,2:50,3:120,4:180,5:400,6:650,7:1500,8:2500};
 const mig=()=>{if(!S.v){S.inv=(S.inv||[]).filter(x=>{if(x.i<9){S.bal+=OLDV[x.i]||0;return false}x.i-=9;return true});S.v=2}
 if(S.v<3){S.inv=(S.inv||[]).filter(x=>{if(x.i<2){S.bal+=x.i?20000:8000;return false}x.i-=2;return true});S.v=3;try{localStorage.setItem('brx',JSON.stringify(S))}catch(e){}}};mig();
-let cloudT=0,dirty=0;
-const cloudWrite=()=>{dirty=0;try{const str=JSON.stringify(S),n=Math.ceil(str.length/3500);CSG.setItem('brx_n',String(n),()=>{});for(let i=0;i<n;i++)CSG.setItem('brx_'+i,str.slice(i*3500,(i+1)*3500),()=>{})}catch(e){}};
-const cloudSave=()=>{if(!CSG)return;dirty=1;clearTimeout(cloudT);cloudT=setTimeout(cloudWrite,1500)};
-const flush=()=>{try{localStorage.setItem('brx',JSON.stringify(S))}catch(e){}if(CSG&&dirty){clearTimeout(cloudT);cloudWrite()}};
+let cc=[];
+const cloudWrite=()=>{try{const str=JSON.stringify(S),n=Math.ceil(str.length/3500),ch=[];for(let i=0;i<n;i++)ch.push(str.slice(i*3500,(i+1)*3500));
+ch.forEach((c,i)=>{if(cc[i]!==c)CSG.setItem('brx_'+i,c,()=>{})});if(cc.length!==n)CSG.setItem('brx_n',String(n),()=>{});cc=ch}catch(e){}};
+const cloudSave=()=>{if(CSG)cloudWrite()};
+const flush=()=>{try{localStorage.setItem('brx',JSON.stringify(S))}catch(e){}};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flush()});addEventListener('pagehide',flush);addEventListener('beforeunload',flush);
 const save=()=>{S.ts=Date.now();try{localStorage.setItem('brx',JSON.stringify(S))}catch(e){}cloudSave()};
 const cloudLoad=()=>{if(!CSG)return;try{CSG.getItem('brx_n',(e,v)=>{const n=+v;if(e||!n)return cloudSave();const keys=Array.from({length:n},(_,i)=>'brx_'+i);CSG.getItems(keys,(e2,r)=>{try{if(e2||!r)return;const d=JSON.parse(keys.map(k=>r[k]||'').join(''));if(d&&(d.ts||0)>(S.ts||0)&&!busy&&!cr.on){S=d;mig();try{localStorage.setItem('brx',JSON.stringify(S))}catch(x){}draw()}else if(!d||(d.ts||0)<(S.ts||0))cloudSave()}catch(x){}})})}catch(e){}};
@@ -356,7 +357,7 @@ $('#k').onclick=close;vCoin()},dur*1000+250)}
 const esc=t=>String(t).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const who=()=>{const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;if(!u)return'';const nm=esc([u.first_name,u.last_name].filter(Boolean).join(' ')),un=u.username?'@'+esc(u.username):'';return `<div class="who">${u.photo_url?`<img src="${esc(u.photo_url)}" alt="">`:'<span>👤</span>'}<div><b>${nm}</b><small>${un}</small></div></div>`};
 function vMe(){const tot=S.inv.reduce((s,x)=>s+I[x.i][3],0);
-$('#view').innerHTML=`<h2>Профиль</h2>${who()}<div class="stats"><div><b>${S.opened}</b>кейсов открыто</div><div><b>${fmt(tot)}</b>стоимость коллекции</div><div><b>${S.best?fmt(S.best):'—'}</b>лучший дроп</div></div>
+$('#view').innerHTML=`<h2>Профиль <small style="font:600 10px Manrope;color:var(--mut)">v2</small></h2>${who()}<div class="stats"><div><b>${S.opened}</b>кейсов открыто</div><div><b>${fmt(tot)}</b>стоимость коллекции</div><div><b>${S.best?fmt(S.best):'—'}</b>лучший дроп</div></div>
 <h3 class="sub">Промокод</h3><div class="bet"><input id="pr" placeholder="Введи промокод" maxlength="20" autocapitalize="characters" autocomplete="off"><button id="prb">Активировать</button></div>
 <h3 class="sub">Инвентарь (${S.inv.length})</h3>${S.inv.length?`<div class="grid3 inv">${S.inv.map(x=>tile(x.i,'','button',`data-id="${x.id}"`)).join('')}</div><button class="btn ghost" id="sa" style="margin-top:14px">Продать всё до эпика</button>`:'<div class="empty">Пока пусто. Бонусный кейс бесплатный раз в 24 часа.</div>'}
 <button class="btn ghost" id="rs" style="margin-top:22px">Начать с нуля</button>`;
