@@ -80,6 +80,7 @@ body{background:radial-gradient(ellipse 80% 50% at 50% -8%,#ff7a1a2b,transparent
 .rq{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px}.rq small{color:var(--mut);font-weight:700}.rh{display:flex;justify-content:space-between;gap:8px;align-items:center}.st{font:800 11px Manrope;padding:3px 8px;border-radius:99px;background:#0005}.st.new{color:var(--g1)}.st.approved{color:#3ddc84}.st.rejected{color:#ff4d5e}.ri{display:flex;flex-wrap:wrap;gap:5px}.ri span{font-size:12px;font-weight:800;background:#0005;border:1px solid var(--line);border-radius:8px;padding:3px 7px}.rt{font:800 15px Unbounded,sans-serif;color:var(--g1)}.rb{display:flex;gap:8px}.rb .btn{padding:11px;font-size:12px}
 .bet textarea{flex:1;min-width:0;min-height:90px;background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:14px;padding:12px;font:600 14px Manrope;resize:vertical}
 #trophy{cursor:pointer;font-size:15px;line-height:1;margin-right:2px;font-style:normal}.who.me{outline:1px solid var(--g1)}
+.fzs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.fzc{aspect-ratio:1;border-radius:16px;background:#0005;border:1px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:32px;color:var(--mut);cursor:pointer;position:relative;overflow:hidden}.fzc.f{border-style:solid;border-color:color-mix(in srgb,var(--c) 60%,var(--line));box-shadow:inset 0 0 18px -6px var(--c)}.fzc small{font:800 10px Manrope,sans-serif;color:var(--mut);margin-top:1px}.fzar{text-align:center;font-size:20px;color:var(--mut);margin:8px 0 0}.fzr{width:128px;height:128px;margin:6px auto 4px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#2b1c3d,#0a0710);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:64px;transition:box-shadow .3s,border-color .3s}.fzr.on{animation:fzp .45s infinite alternate;border-color:var(--g2)}.fzr.done{border-color:var(--c);box-shadow:0 0 34px var(--c)}@keyframes fzp{from{box-shadow:0 0 0 0 #ffa84000}to{box-shadow:0 0 36px 4px #ffa84099}}.fzi{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0 14px;font-weight:800;font-size:13px}.fzi span{padding:6px 12px;border-radius:99px;background:var(--card);border:1px solid var(--line)}.fzi .up{color:#3ddc84}.fzi .dn{color:#ff4d5e}
 </style>
 </head>
 <body>
@@ -90,6 +91,7 @@ body{background:radial-gradient(ellipse 80% 50% at 50% -8%,#ff7a1a2b,transparent
 <button data-t="cases"><svg viewBox="0 0 24 24"><path d="M3.5 9.5h17v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M3.5 9.5 6 4h12l2.5 5.5M10 13.5h4"/></svg>Кейсы</button>
 <button data-t="up"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v-9M8.3 11.2 12 7.5l3.7 3.7"/></svg>Апгрейд</button>
 <button data-t="coin"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></svg>Монетка</button>
+<button data-t="fuse"><svg viewBox="0 0 24 24"><path d="M4 4l8 8M20 4l-8 8M12 12v8"/><circle cx="12" cy="20" r="1.2"/></svg>Фьюз</button>
 <button data-t="crash"><svg viewBox="0 0 24 24"><path d="M3 18 9 11l4 4 8-10"/><path d="M15 5h6v6"/></svg>Краш</button>
 <button data-t="me"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.4-4 4.400-6 8-6s6.600 2 8 6"/></svg>Профиль</button>
 </nav>
@@ -140,8 +142,35 @@ function modal(h){try{TG&&TG.HapticFeedback&&TG.HapticFeedback.impactOccurred('m
 const close=()=>$('#md').classList.remove('on');
 function nav(t){if(busy||cr.on)return toast('Дождись конца раунда');clearInterval(tm);tab=t;cur=null;draw()}
 $('#nav').onclick=e=>{const b=e.target.closest('button');if(b)nav(b.dataset.t)};
-function draw(){hdr();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));({cases:cur===null?vCases:vCase,up:vUp,coin:vCoin,crash:vCrash,me:vMe,partner:vPartner,topup:vTopup,admin:vAdmin,top:vTop})[tab]()}
+function draw(){hdr();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));({cases:cur===null?vCases:vCase,up:vUp,coin:vCoin,fuse:vFuse,crash:vCrash,me:vMe,partner:vPartner,topup:vTopup,admin:vAdmin,top:vTop})[tab]()}
 
+
+/* ===== ФЬЮЗ: 4 брейнрота -> 1 случайный (лучше или хуже) ===== */
+let FZ={sel:[]};const FZ_N=4;
+const FZV=[...new Set(I.map(x=>x[3]))].sort((a,b)=>a-b);
+// множитель к сумме: 45% хуже, 38% около, 17% лучше; среднее ≈0.92 (небольшая выгода сайта)
+function fzPick(V){const r=Math.random(),m=r<.45?.25+Math.random()*.6:r<.83?.85+Math.random()*.4:1.25+Math.random()*.75,T=V*m;
+let v;if(T<=FZV[0])v=FZV[0];else if(T>=FZV[FZV.length-1])v=FZV[FZV.length-1];else{let k=0;while(FZV[k+1]<T)k++;const L=FZV[k],U=FZV[k+1];v=Math.random()<(T-L)/(U-L)?U:L}
+const c=[];I.forEach((x,i)=>{if(x[3]===v)c.push(i)});return c[Math.floor(Math.random()*c.length)]}
+function fzOdds(V){let up=0,dn=0;const N=2500;for(let k=0;k<N;k++){const v=I[fzPick(V)][3];if(v>V)up++;else if(v<V)dn++}return{up:Math.round(up/N*100),dn:Math.round(dn/N*100)}}
+const fzSel=()=>FZ.sel.map(id=>S.inv.find(x=>x.id===id)).filter(Boolean);
+function vFuse(){FZ.sel=FZ.sel.filter(id=>S.inv.some(x=>x.id===id));
+$('#view').innerHTML=`<h2>Фьюз</h2><p class="cnote" style="margin:-6px 0 14px;text-align:left">Закинь 4 брейнрота и получи одного случайного. Он может оказаться дороже или дешевле суммы.</p><div class="fzs" id="fzs"></div><div class="fzar">▼</div><div class="fzr" id="fzr">❓</div><div class="fzi" id="fzi"></div><button class="btn" id="fzg">Слить</button><h3 class="sub">Мои предметы (${S.inv.length})</h3><div id="fzgrid"></div>`;
+$('#fzs').onclick=e=>{const c=e.target.closest('[data-id]');if(c&&!busy){FZ.sel.splice(FZ.sel.indexOf(c.dataset.id),1);fzUpd()}};
+$('#fzgrid').onclick=e=>{const b=e.target.closest('button');if(!b||busy)return;const id=b.dataset.id,k=FZ.sel.indexOf(id);if(k>=0)FZ.sel.splice(k,1);else if(FZ.sel.length<FZ_N)FZ.sel.push(id);else return toast('Максимум 4 брейнрота');fzUpd()};
+$('#fzg').onclick=fzGo;fzUpd()}
+function fzUpd(){const sel=fzSel(),V=sel.reduce((a,x)=>a+I[x.i][3],0),ck='<i class="ck">✓</i></button>';
+$('#fzs').innerHTML=Array.from({length:FZ_N},(_,k)=>{const x=sel[k];return x?`<div class="fzc f" data-id="${x.id}" style="--c:${R[I[x.i][2]][0]}">${ic(I[x.i])}<small>${fmt(I[x.i][3])}</small></div>`:'<div class="fzc">+</div>'}).join('');
+if(sel.length===FZ_N){const o=fzOdds(V);$('#fzi').innerHTML=`<span>Сумма ${co()}${fmt(V)}</span><span class="up">▲ Лучше ${o.up}%</span><span class="dn">▼ Хуже ${o.dn}%</span>`}else $('#fzi').innerHTML=`<span>Выбрано ${sel.length}/${FZ_N}</span>`;
+$('#fzg').disabled=sel.length!==FZ_N||!!busy;
+$('#fzgrid').innerHTML=S.inv.length?`<div class="grid3">${S.inv.map(x=>tile(x.i,FZ.sel.includes(x.id)?'sel':'','button',`data-id="${x.id}"`).replace('</button>',ck)).join('')}</div>`:'<div class="empty">Инвентарь пуст. Открой кейс, чтобы было что сливать.</div>'}
+function fzGo(){if(busy)return;const sel=fzSel();if(sel.length!==FZ_N)return;busy=1;
+const V=sel.reduce((a,x)=>a+I[x.i][3],0),res=fzPick(V),r=$('#fzr'),dur=S.fast?1000:2600;$('#fzg').disabled=true;r.classList.add('on');
+const iv=setInterval(()=>{const i=Math.floor(Math.random()*I.length);r.innerHTML=ic(I[i])},90);
+const ids=new Set(FZ.sel);S.inv=S.inv.filter(x=>!ids.has(x.id));S.inv.unshift({id:uid(),i:res});S.best=Math.max(S.best,I[res][3]);save();
+setTimeout(()=>{clearInterval(iv);busy=0;FZ.sel=[];const x=I[res],d=x[3]-V,up=d>0,eq=d===0;
+vFuse();const nr=$('#fzr');nr.classList.add('done');nr.style.setProperty('--c',R[x[2]][0]);nr.innerHTML=ic(x);
+modal(`<div class="big" style="--c:${R[x[2]][0]}">${ic(x)}</div><h3>${up?'Улучшение! 🔺':eq?'Ровно столько же':'Стало хуже 🔻'}</h3><p>${x[1]} · ${co()}${fmt(x[3])}<br>Было ${co()}${fmt(V)} (${up?'+':''}${fmt(d)})</p><button class="btn" id="k">${up?'Круто':'Ок'}</button>`);$('#k').onclick=close},dur)}
 
 /* ===== ПАРТНЁРЫ И ПРОМОКОДЫ ===== */
 const PARTNERS=[8158983520]; // <-- сюда вписывай Telegram ID партнёров через запятую, например [123456789,987654321]
@@ -350,7 +379,7 @@ function endC(w){const m=w?cr.m:cr.pt,b=cr.b;cr.on=0;if(w){S.bal+=Math.floor(b*m
 $('#mu').textContent=m.toFixed(2)+'x';$('#mu').style.color=w?'#3ddc84':'#ff4d5e';$('#cs').textContent=w?`Выигрыш ${fmt(b*m)}`:'Улетел. Ставка потеряна';$('#cg').textContent='Старт';vCrashHist()}
 function vCrashHist(){const h=document.querySelector('.hist');if(h)h.innerHTML=S.hist.map(h=>`<i class="${h.w?'w':'l'}">${h.m.toFixed(2)}x</i>`).join('')}
 
-let G={sel:[],side:0};const COIN_P=25,COIN_LOSE=0; // COIN_LOSE: % бросков, которые монетка сливает принудительно
+let G={sel:[],side:0};const COIN_P=50,COIN_LOSE=0; // COIN_LOSE: % бросков, которые монетка сливает принудительно
 const cBet=()=>S.inv.filter(x=>G.sel.includes(x.id)).reduce((a,x)=>a+I[x.i][3],0);
 function vCoin(){G.sel=G.sel.filter(id=>S.inv.some(x=>x.id===id));
 $('#view').innerHTML=`<h2>Монетка</h2><div class="coinw"><div class="coin" id="cn"><div class="cf">🦅<small>Орёл</small></div><div class="cf b">🧠<small>Решка</small></div></div></div><div class="slot"><label>Ставка</label><div class="sa" id="csa"></div><div class="sv" id="csv"></div></div><div class="sides" id="sd"><button data-s="0">🦅 Орёл</button><button data-s="1">🧠 Решка</button></div><button class="btn" id="cgo">Бросить</button><p class="cnote">При победе ставка удваивается</p><h3 class="sub">Мои предметы (${S.inv.length})</h3><div id="cgrid"></div>`;
