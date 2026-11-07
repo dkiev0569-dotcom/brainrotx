@@ -20,6 +20,12 @@ header{display:flex;justify-content:space-between;align-items:center;padding:14p
 .co{display:inline-block;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff0a8,var(--g1) 45%,#c98912);vertical-align:-3px;margin-right:5px;box-shadow:0 0 8px #ffc23355}
 .bal .co{margin:0}
 main{padding:4px 16px}
+#ld{display:flex;align-items:center;gap:8px;padding:0 16px 8px}#ld .lv{flex:none;display:flex;align-items:center;gap:5px;font:800 10px Manrope;color:#ff4d5e;letter-spacing:.5px}
+#ld .lv:before{content:'';width:7px;height:7px;border-radius:50%;background:#ff4d5e;animation:lp 1.2s infinite}@keyframes lp{50%{opacity:.25}}
+#ldl{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;min-width:0}#ldl::-webkit-scrollbar{display:none}
+.dc{flex:none;display:flex;align-items:center;gap:6px;padding:3px 10px 3px 6px;border-radius:12px;background:var(--card);border:1px solid var(--line);border-bottom:2px solid var(--c);font:700 11px Manrope;white-space:nowrap;animation:dci .4s}
+@keyframes dci{from{opacity:0;transform:translateX(-14px)}}.dc .ii{height:24px}.dc span{display:flex}.dc small{display:block;color:var(--mut);font-size:10px}.dc em{font-style:normal;color:var(--g1);margin-left:2px}
+#ldn{color:var(--mut);font:600 11px Manrope}
 h2{font:800 22px Unbounded,sans-serif;margin:8px 0 14px}.sub{font:600 14px Unbounded,sans-serif;margin:22px 0 10px;color:var(--mut)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .case{background:linear-gradient(170deg,color-mix(in srgb,var(--c) 22%,var(--card)),var(--card) 70%);border:1px solid color-mix(in srgb,var(--c) 40%,var(--line));border-radius:20px;padding:18px 12px;color:var(--tx);text-align:center;font:inherit;cursor:pointer;transition:transform .15s}
@@ -86,6 +92,7 @@ body{background:radial-gradient(ellipse 80% 50% at 50% -8%,#ff7a1a2b,transparent
 <body>
 <canvas id="bg"></canvas>
 <header><div class="logo">Brainrot<b>X</b></div><div class="bal"><b id="trophy" role="button" aria-label="Топ мира">🏆</b><i class="co"></i><span id="bal"></span><b id="plus" role="button" aria-label="Пополнить">+</b></div></header>
+<div id="ld"><span class="lv">LIVE</span><div id="ldl"></div></div>
 <main id="view"></main>
 <nav id="nav">
 <button data-t="cases"><svg viewBox="0 0 24 24"><path d="M3.5 9.5h17v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M3.5 9.5 6 4h12l2.5 5.5M10 13.5h4"/></svg>Кейсы</button>
@@ -132,7 +139,7 @@ ch.forEach((c,i)=>{if(cc[i]!==c)CSG.setItem('brx_'+i,c,()=>{})});if(cc.length!==
 const cloudSave=()=>{if(CSG)cloudWrite()};
 const flush=()=>{try{localStorage.setItem('brx',JSON.stringify(S))}catch(e){}};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flush()});addEventListener('pagehide',flush);addEventListener('beforeunload',flush);
-const save=()=>{S.ts=Date.now();try{localStorage.setItem('brx',JSON.stringify(S))}catch(e){}cloudSave()};
+const save=()=>{S.ts=Date.now();try{localStorage.setItem('brx',JSON.stringify(S))}catch(e){}cloudSave();try{topQ()}catch(e){}};
 const cloudLoad=()=>{if(!CSG)return;try{CSG.getItem('brx_n',(e,v)=>{const n=+v;if(e||!n)return cloudSave();const keys=Array.from({length:n},(_,i)=>'brx_'+i);CSG.getItems(keys,(e2,r)=>{try{if(e2||!r)return;const d=JSON.parse(keys.map(k=>r[k]||'').join(''));if(d&&(d.ts||0)>(S.ts||0)&&!busy&&!cr.on){S=d;mig();try{localStorage.setItem('brx',JSON.stringify(S))}catch(x){}draw()}else if(!d||(d.ts||0)<(S.ts||0))cloudSave()}catch(x){}})})}catch(e){}};
 let QN=1;let tab='cases',cur=null,busy=0,cr={on:0},tm=0;let U={sel:[],t:null,pct:0,tab:'inv'};
 const uid=()=>Math.random().toString(36).slice(2,9),hdr=()=>$('#bal').textContent=fmt(S.bal);
@@ -176,7 +183,7 @@ modal(`<div class="big" style="--c:${R[x[2]][0]}">${ic(x)}</div><h3>${up?'Улу
 
 /* ===== ПАРТНЁРЫ И ПРОМОКОДЫ ===== */
 const PARTNERS=[8158983520]; // <-- сюда вписывай Telegram ID партнёров через запятую, например [123456789,987654321]
-const API='https://script.google.com/macros/s/AKfycbwStz1zlAaODhB3EuJraOp77Zrsovp-X_O2u5xyd2AoSqyPe8NrBGTeA9-aJ3yfk36Q/exec'; // <-- адрес твоего сервера для общих промокодов (пусто = тест только на этом устройстве)
+const API='https://script.google.com/macros/s/AKfycbwF77I1hgm_ys8-JlenhTBfvgBvh5P-JWTGIOCVe0imC-wCiL3lb9BkgMfphLfaasL6/exec'; // <-- адрес твоего сервера для общих промокодов (пусто = тест только на этом устройстве)
 const myId=()=>{const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;return u?u.id:0};
 const isP=()=>PARTNERS.includes(myId());
 const PL=()=>{try{return JSON.parse(localStorage.getItem('brx_promos'))||{}}catch(e){return{}}},PS=o=>{try{localStorage.setItem('brx_promos',JSON.stringify(o))}catch(e){}};
@@ -259,6 +266,15 @@ const giveBox=()=>isA()?`<h3 class="sub">Выдать монеты себе</h3>
 const giveInit=()=>{const b=$('#gb');if(!b)return;b.onclick=()=>{if(!isA())return;const n=Math.floor(+$('#gv').value);if(!(n>=1&&n<=1e9))return toast('Введи сумму от 1 до 1 000 000 000');S.bal+=n;save();hdr();$('#gv').value='';toast('+'+fmt(n)+' монет')}};
 let lastTop=0;
 const myName=()=>{const u=(TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user)||{};return String(u.first_name||u.username||'Игрок').slice(0,16)};
+var topT;function topQ(){if(!API)return;clearTimeout(topT);topT=setTimeout(()=>topSend(1),4000)}
+const LDMIN=100;let LD=[];
+const ldEsc=t=>String(t).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+function ldRender(){const el=document.getElementById('ldl');if(!el)return;const l=LD.filter(d=>I[d.i]);
+el.innerHTML=l.length?l.map(d=>`<div class="dc" style="--c:${R[I[d.i][2]][0]}"><span>${ic(I[d.i])}</span><div>${ldEsc(d.n)}<small>${I[d.i][1]} <em>${fmt(I[d.i][3])}</em></small></div></div>`).join(''):'<span id="ldn">Скоро здесь появятся дропы игроков</span>'}
+function ldDrops(ws){const l=ws.filter(i=>I[i][3]>=LDMIN);if(!l.length)return;
+LD=[...l.map(i=>({i,n:myName()})),...LD].slice(0,15);ldRender();l.forEach(i=>{if(API)api('/drop/add',{i})})}
+async function ldPoll(){if(!API||document.hidden)return;const r=await api('/drop/list',{});if(r&&r.list){LD=r.list.slice(0,15);ldRender()}}
+setTimeout(()=>{ldRender();ldPoll();setInterval(ldPoll,10000)},300);
 const invVal=()=>S.inv.reduce((a,x)=>a+I[x.i][3],0);
 async function topSend(force){if(!API)return;if(!force&&Date.now()-lastTop<15000)return;lastTop=Date.now();await api('/top/submit',{val:invVal(),name:myName()})}
 if(API){setInterval(()=>topSend(),60000);document.addEventListener('visibilitychange',()=>{if(document.hidden)topSend()})}
@@ -330,7 +346,7 @@ const ws=Array.from({length:n},()=>pick(c)),sts=[...document.querySelectorAll('#
 S.opened+=n;S.inv.push(...its);S.best=Math.max(S.best,...ws.map(i=>I[i][3]));save();
 sts.forEach((st,k)=>{st.style.transition='none';st.style.transform='none';st.innerHTML=strip(c,ws[k])});void rl.offsetWidth;
 sts.forEach((st,k)=>{const t=st.children[32],box=st.parentElement,off=t.offsetLeft+t.offsetWidth/2+(Math.random()-.5)*t.offsetWidth*.6-box.offsetWidth/2;st.style.transition=`transform ${base+k*gap}s cubic-bezier(.1,.75,.12,1)`;st.style.transform=`translateX(-${off}px)`});
-let fin=0,h;const finish=()=>{if(fin)return;fin=1;clearTimeout(h);sts.forEach(st=>st.style.transition='none');if(sk){sk.hidden=true;sk.onclick=null}rl.onclick=null;rl.classList.remove('sp');busy=0;hdr();lbl();n>1?wonMany(its):won(its[0])};
+let fin=0,h;const finish=()=>{if(fin)return;fin=1;clearTimeout(h);sts.forEach(st=>st.style.transition='none');if(sk){sk.hidden=true;sk.onclick=null}rl.onclick=null;rl.classList.remove('sp');busy=0;hdr();lbl();ldDrops(ws);n>1?wonMany(its):won(its[0])};
 h=setTimeout(finish,(base+(n-1)*gap)*1000+200);if(sk){sk.hidden=false;sk.onclick=finish}rl.onclick=finish;rl.classList.add('sp')}
 
 function won(it){const x=I[it.i];modal(`<div class="big" style="--c:${R[x[2]][0]}">${ic(x)}</div><h3>${x[1]}</h3><p>${R[x[2]][1]}, стоит ${co()}${fmt(x[3])}</p><button class="btn" id="k">Забрать</button><button class="btn ghost" id="s">Продать за ${fmt(x[3])}</button>`);
