@@ -477,7 +477,7 @@ $('#k').onclick=close;$('#s').onclick=()=>{sell(it.id);close();draw()}}
 function wonMany(its){{const o='crelm',b=its.reduce((a,x)=>o.indexOf(I[x.i][2])>o.indexOf(a)?I[x.i][2]:a,'c');sfx('rev',b,its.some(x=>x.m))}const tot=its.reduce((a,x)=>a+mv(x),0);modal(`<h3>Выпало ×${its.length}</h3><div class="grid3 mg">${its.map(x=>tile(x.i,'','div','',x.m)).join('')}</div><p>Всего на ${co()}${fmt(tot)}</p><button class="btn" id="k">Забрать всё</button><button class="btn ghost" id="s">Продать всё за ${fmt(tot)}</button>`);$('#k').onclick=close;$('#s').onclick=()=>{its.forEach(x=>sell(x.id));close();draw()}}
 function sell(id){const k=S.inv.findIndex(x=>x.id===id);if(k<0)return;S.bal+=mv(S.inv[k]);S.inv.splice(k,1);sfx('coin');save();hdr()}
 
-const UE=8,UMAX=75,UMIN=2,GR=84,GC=2*Math.PI*GR;
+const UE=15,UMAX=75,UMIN=10,GR=84,GC=2*Math.PI*GR;
 const upBet=()=>S.inv.filter(x=>U.sel.includes(x.id)).reduce((a,x)=>a+mv(x),0);
 const upCh=(b,v)=>b>0&&v>0?Math.floor(Math.min(UMAX,b/v*(100-UE))*100)/100:0;
 const tV=t=>I[t%1000][3]*MM[t/1000|0],tI=t=>t%1000,tM=t=>t/1000|0;
@@ -490,7 +490,7 @@ function setPct(p){if(busy)return;const b=upBet();if(!b){toast('Сначала �
 function upd(){const bet=upBet();let tg=U.t;if(tg!==null&&!(tV(tg)>bet&&upCh(bet,tV(tg))>=UMIN))tg=U.t=null;if(tg===null)U.pct=0;
 const ch=tg!==null?upCh(bet,tV(tg)):0,sel=S.inv.filter(x=>U.sel.includes(x.id)),mini=(i,m)=>`<span class="mini${m?' mu'+m:''}" style="--c:${R[I[i][2]][0]}">${ic(I[i])}</span>`;
 $('#gwin').setAttribute('stroke-dasharray',`${GC*ch/100} ${GC}`);$('#gpc').textContent=(ch?+ch.toFixed(1):0)+'%';
-$('#slots').innerHTML=`<div class="slot"><label>Ставка</label><div class="sa">${sel.length?sel.slice(0,3).map(x=>mini(x.i,x.m)).join(''):'<em>Выбери предметы</em>'}</div><div class="sv">${bet?co()+fmt(bet):''}</div></div><div class="sar"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div class="slot" ${tg!==null?`style="--c:${tM(tg)?MT[tM(tg)][2]:R[I[tI(tg)][2]][0]}"`:''}><label>Цель</label><div class="sa">${tg!==null?mini(tI(tg),tM(tg))+(tM(tg)?`<small style="font:800 10px Manrope;color:${MT[tM(tg)][2]};margin-left:6px">${MT[tM(tg)][0]} ×${MM[tM(tg)]}</small>`:''):'<em>Выбери цель</em>'}</div><div class="sv">${tg!==null?co()+fmt(tV(tg)):''}</div></div>`;
+$('#slots').innerHTML=`<div class="slot"><label>Ставка ${sel.length}/5</label><div class="sa">${sel.length?sel.slice(0,3).map(x=>mini(x.i,x.m)).join('')+(sel.length>3?`<small style="font:800 11px Manrope;color:var(--mut);margin-left:4px">+${sel.length-3}</small>`:''):'<em>Выбери предметы</em>'}</div><div class="sv">${bet?co()+fmt(bet):''}</div></div><div class="sar"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div class="slot" ${tg!==null?`style="--c:${tM(tg)?MT[tM(tg)][2]:R[I[tI(tg)][2]][0]}"`:''}><label>Цель</label><div class="sa">${tg!==null?mini(tI(tg),tM(tg))+(tM(tg)?`<small style="font:800 10px Manrope;color:${MT[tM(tg)][2]};margin-left:6px">${MT[tM(tg)][0]} ×${MM[tM(tg)]}</small>`:''):'<em>Выбери цель</em>'}</div><div class="sv">${tg!==null?co()+fmt(tV(tg)):''}</div></div>`;
 $('#ug').disabled=!(bet>0&&tg!==null)||busy;
 const hi=UMAX;$('#pcts').innerHTML=[75,50,30].map(p=>`<button data-p="${p}" class="${U.pct===p?'on':''}">${p}%</button>`).join('');
 $('#pcts').onclick=e=>{const b=e.target.closest('button');if(b)setPct(+b.dataset.p)};
@@ -502,7 +502,7 @@ if(U.tab==='inv')g.innerHTML=S.inv.length?`<div class="grid3">${S.inv.map(x=>til
 else{const l=bet?upTars(bet).filter(t=>!U.f||tM(t)===U.f):[],fb=`<div class="qty">${['Все','☢ Радиоактивные','🌈 Радужные'].map((n,k)=>`<button data-f="${k}" class="${(U.f|0)===k?'on':''}">${n}</button>`).join('')}</div>`;g.innerHTML=!bet?'<div class="empty">Сначала выбери предметы для ставки.</div>':fb+(!l.length?'<div class="empty">Для такой ставки нет целей. Добавь ещё предметов.</div>':`<div class="grid3">${l.map(t=>tile(tI(t),t===tg?'sel':'','button',`data-t="${t}"`,tM(t)).replace('</button>',`<i class="pc">${+upCh(bet,tV(t)).toFixed(1)}%</i>`+ck)).join('')}</div>`)}
 g.onclick=e=>{const b=e.target.closest('button');if(!b||busy)return;
 if(b.dataset.f!==undefined){U.f=+b.dataset.f;return upd()}
-if(b.dataset.id){const id=b.dataset.id,k=U.sel.indexOf(id);k<0?U.sel.push(id):U.sel.splice(k,1);const nb=upBet();if(U.pct)U.t=nb?upBest(nb,U.pct):null}
+if(b.dataset.id){const id=b.dataset.id,k=U.sel.indexOf(id);if(k<0){if(U.sel.length>=5)return toast('Максимум 5 предметов');U.sel.push(id)}else U.sel.splice(k,1);const nb=upBet();if(U.pct)U.t=nb?upBest(nb,U.pct):null}
 else if(b.dataset.t){U.t=+b.dataset.t;U.pct=0}upd()}}
 function doUp(){const bet=upBet(),tg=U.t;if(!bet||tg===null||busy)return;busy=1;$('#ug').disabled=true;$('#rg').disabled=true;
 const ch=upCh(bet,tV(tg)),roll=Math.random()*100,win=roll<ch,p=$('#gptr'),fu=S.fastUp;
